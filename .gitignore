@@ -1,0 +1,17 @@
+# Ignore base Mac OS X files
+.DS_Store
+
+# Ignore tools
+get_creds.sh
+
+# Ignore implementation-specific Terraform files
+providers/
+terraform.tfstate
+terraform.tfvars
+.terraform.lock.hcl
+remote.conf
+.terraform
+versions-local.tf
+
+
+
