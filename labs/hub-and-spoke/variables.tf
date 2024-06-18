@@ -4,7 +4,7 @@ variable "address_space_onpremises" {
 }
 
 variable "address_space_azure" {
-  description = "The address space used on-premises"
+  description = "The address space used in Azure"
   type        = string
 }
 
