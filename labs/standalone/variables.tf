@@ -4,7 +4,7 @@ variable "address_space_onpremises" {
 }
 
 variable "address_space_azure" {
-  description = "The address space in Azure"
+  description = "The address space used on-premises"
   type        = string
 }
 
@@ -77,18 +77,6 @@ variable "sku_tools_os" {
 variable "tags" {
   description = "The tags to apply to the resources"
   type        = map(string)
-}
-
-variable "vnet_cidr_ss" {
-  description = "The virtual network CIDR block for the shared services virtual network"
-  type        = string
-  default = "10.51.0.0/16"
-}
-
-variable "vnet_cidr_tr" {
-  description = "The virtual network CIDR block for the transit services virtual network"
-  type        = string
-  default = "10.50.0.0/16"
 }
 
 variable "vnet_cidr_wl" {

@@ -86,7 +86,7 @@ module "transit-vnet" {
     module.storage_account_flow_logs
   ]
 
-  source              = "../../modules/vnet/transit"
+  source              = "../../modules/vnet/hub-and-spoke/transit"
   random_string       = random_string.unique.result
   location            = var.location
   resource_group_name = azurerm_resource_group.rgtran.name
@@ -97,6 +97,7 @@ module "transit-vnet" {
   subnet_cidr_dns      = cidrsubnet(var.vnet_cidr_ss, 8, 1)
 
   address_space_onpremises = var.address_space_onpremises
+  address_space_apim = [cidrsubnet(var.vnet_cidr_wl, 8, 4)]
   address_space_azure      = var.address_space_azure
   vnet_cidr_ss             = var.vnet_cidr_ss
   vnet_cidr_wl             = var.vnet_cidr_wl
@@ -118,7 +119,7 @@ module "shared-vnet" {
     module.transit-vnet
   ]
 
-  source              = "../../modules/vnet/shared"
+  source              = "../../modules/vnet/hub-and-spoke/shared"
   random_string       = random_string.unique.result
   location            = var.location
   resource_group_name = azurerm_resource_group.rgshared.name
@@ -244,7 +245,7 @@ module "workload-vnet" {
     module.shared-vnet
   ]
 
-  source              = "../../modules/vnet/workload-generic"
+  source              = "../../modules/vnet/hub-and-spoke/workload"
   random_string       = random_string.unique.result
   location            = var.location
   resource_group_name = azurerm_resource_group.rgwork.name

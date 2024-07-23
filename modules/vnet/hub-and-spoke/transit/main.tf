@@ -127,6 +127,7 @@ module "firewall" {
   firewall_subnet_id = azurerm_subnet.subnet_firewall.id
   dns_servers = var.dns_servers
   dns_cidr = var.subnet_cidr_dns
+  address_space_apim = var.address_space_apim
   address_space_azure = var.address_space_azure
   address_space_onpremises = var.address_space_onpremises
 

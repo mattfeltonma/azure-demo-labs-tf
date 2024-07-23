@@ -1,11 +1,7 @@
 # Azure Hub and Spoke Lab
 
 ## Updates
-* 7/22/2024
-* * Added subnets, route tables, and network security groups to allow for deployment of Application Gateway or API Management deployed in internal mode
-* * Added required rules for internal API Management to Azure Firewall rules
-* 6/07/2024
-* * Initial release
+6/7/2024 - Initial release
 
 ## Overview
 The Terraform code in this repository provisions an enterprise-like lab environment for learning and experimentation. The environment is built to include infrastructure components commmon to enterprise environments. This components include a security appliance for centralized mediation, logging, and packet inspection, DNS services, secure remote access, and logging.

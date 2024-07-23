@@ -180,6 +180,162 @@ resource "azurerm_firewall_policy_rule_collection_group" "rule_collection_group_
       ]
     }
   }
+  network_rule_collection {
+    name     = "AllowInternalApim"
+    action   = "Allow"
+    priority = 600
+    rule {
+      name        = "AllowAzureMonitor"
+      description = "Allow APIM instance to communicate with Azure Monitor"
+      protocols = [
+        "TCP"
+      ]
+      source_addresses = [
+        var.address_space_apim
+      ]
+      destination_addresses = [
+        "AzureMonitor"
+      ]
+      destination_ports = [
+        "1886",
+        "443",
+        "12000"
+      ]
+    }
+    rule {
+      name        = "AllowAzureStorage"
+      description = "Allow APIM instance to communicate with Azure Storage"
+      protocols = [
+        "TCP"
+      ]
+      source_addresses = [
+        var.address_space_apim
+      ]
+      destination_addresses = [
+        "Storage"
+      ]
+      destination_ports = [
+        "443",
+        "445"
+      ]
+    }
+    rule {
+      name        = "AllowEventHub"
+      description = "Allow APIM instance to communicate with Azure Event Hub"
+      protocols = [
+        "TCP"
+      ]
+      source_addresses = [
+        var.address_space_apim
+      ]
+      destination_addresses = [
+        "EventHub"
+      ]
+      destination_ports = [
+        "443",
+        "5671-5672"
+      ]
+    }
+    rule {
+      name        = "AllowKeyVault"
+      description = "Allow APIM instance to communicate with Azure Key Vault"
+      protocols = [
+        "TCP"
+      ]
+      source_addresses = [
+        var.address_space_apim
+      ]
+      destination_addresses = [
+        "AzureKeyVault"
+      ]
+      destination_ports = [
+        "443"
+      ]
+    }
+    rule {
+      name        = "AllowSql"
+      description = "Allow APIM instance to communicate with Azure SQL"
+      protocols = [
+        "TCP"
+      ]
+      source_addresses = [
+        var.address_space_apim
+      ]
+      destination_addresses = [
+        "Sql"
+      ]
+      destination_ports = [
+        "1433"
+      ]
+    }
+    rule {
+      name        = "AllowNtp"
+      description = "Allow APIM instance to communicate with NTP servers"
+      protocols = [
+        "UDP"
+      ]
+      source_addresses = [
+        var.address_space_apim
+      ]
+      destination_addresses = [
+        "*"
+      ]
+      destination_ports = [
+        "123"
+      ]
+    }
+    rule {
+      name        = "AllowDns"
+      description = "Allow APIM instance to communicate with DNS servers"
+      protocols = [
+        "UDP",
+        "TCP"
+      ]
+      source_addresses = [
+        var.address_space_apim
+      ]
+      destination_addresses = [
+        var.dns_cidr
+      ]
+      destination_ports = [
+        "53"
+      ]
+    }
+    rule {
+      name        = "AllowAzureKmsServers"
+      description = "Allow Windows machines to activate with Azure KMS Servers"
+      protocols = [
+        "TCP"
+      ]
+      source_addresses = [
+        var.address_space_apim
+      ]
+      destination_addresses = [
+        "AzurePlatformLKM"
+      ]
+      destination_ports = [
+        "1688"
+      ]
+    }
+    rule {
+      name        = "AllowEntraID"
+      description = "Allow traffic to Entra ID"
+      protocols = [
+        "TCP"
+      ]
+      source_addresses = [
+        var.address_space_apim
+      ]
+      destination_addresses = [
+        "AzureActiveDirectory"
+      ]
+      destination_ports = [
+        "443",
+        "80"
+      ]
+    }
+  }
+
 }
 
 resource "azurerm_firewall_policy_rule_collection_group" "rule_collection_group_application" {
@@ -232,6 +388,121 @@ resource "azurerm_firewall_policy_rule_collection_group" "rule_collection_group_
       ]
       destination_fqdns = [
         "*"
+      ]
+    }
+  }
+  application_rule_collection {
+    name     = "AllowInternalApim"
+    action   = "Allow"
+    priority = 300
+    rule {
+      name        = "AllowCrlLookups"
+      description = "Allows network flows to support CRL checks for APIM instance hosts"
+      protocols {
+        type = "Http"
+        port = 80
+      }
+      protocols {
+        type = "Https"
+        port = 443
+      }
+      source_addresses = [
+        var.address_space_apim
+      ]
+      destination_fqdns = [
+        "ocsp.msocsp.com",
+        "crl.microsoft.com", 
+        "mscrl.microsoft.com",
+        "ocsp.digicert.com", 
+        "oneocsp.microsoft.com",
+        "issuer.pki.azure.com"
+      ]
+    }
+    rule {
+      name        = "AllowPortalDiagnostics"
+      description = "Allows network flows to support Azure Portal Diagnostics"
+      protocols {
+        type = "Https"
+        port = 443
+      }
+      source_addresses = [
+        var.address_space_apim
+      ]
+      destination_fqdns = [
+        "dc.services.visualstudio.com"
+      ]
+    }
+    rule {
+      name        = "AllowMicrosoftDiagnostics"
+      description = "Allows network flows to support Microsoft Diagnostics on APIM instance hosts"
+      protocols {
+        type = "Https"
+        port = 443
+      }
+      source_addresses = [
+        var.address_space_apim
+      ]
+      destination_fqdns = [
+        "azurewatsonanalysis-prod.core.windows.net",
+        "shavamanifestazurecdnprod1.azureedge.net", 
+        "shavamanifestcdnprod1.azureedge.net",
+        "settings-win.data.microsoft.com",
+        "v10.events.data.microsoft.com"
+      ]
+    }
+    rule {
+      name        = "AllowWindowsUpdate"
+      description = "Allows network flows to support Microsoft Updates on APIM instance hosts"
+      protocols {
+        type = "Http"
+        port = 80
+      }
+      protocols {
+        type = "Https"
+        port = 443
+      }
+      source_addresses = [
+        var.address_space_apim
+      ]
+      destination_fqdns = [
+        "*.update.microsoft.com",
+        "*.ctldl.windowsupdate.com",
+        "ctldl.windowsupdate.com",
+        "download.windowsupdate.com",
+        "fe3.delivery.mp.microsoft.com",
+        "go.microsoft.com",
+        "msedge.api.cdp.microsoft.com"
+      ]
+    }
+    rule {
+      name        = "AllowMicrosoftDefender"
+      description = "Allows network flows to support Microsoft Defender on APIM instance hosts"
+      protocols {
+        type = "Https"
+        port = 443
+      }
+      source_addresses = [
+        var.address_space_apim
+      ]
+      destination_fqdns = [
+        "wdcp.microsoft.com",
+        "wdcpalt.microsoft.com"
+      ]
+    }
+    rule {
+      name        = "AllowOtherFlow"
+      description = "Allows network flows to support other flows to bootstrap APIM instance hosts"
+      protocols {
+        type = "Https"
+        port = 443
+      }
+      source_addresses = [
+        var.address_space_apim
+      ]
+      destination_fqdns = [
+        "config.edge.skype.com",
+        "azureprofiler.trafficmanager.net",
+        "clientconfig.passport.net"
       ]
     }
   }

@@ -1,3 +1,8 @@
+variable "address_space_apim" {
+  description = "The address space used for the APIM subnet"
+  type        = string
+}
+
 variable "address_space_azure" {
   description = "The address space used in the Azure environment"
   type        = string
