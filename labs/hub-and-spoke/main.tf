@@ -253,14 +253,15 @@ module "workload-vnet" {
   subnet_cidr_app    = [cidrsubnet(var.vnet_cidr_wl, 8, 0)]
   subnet_cidr_data     = [cidrsubnet(var.vnet_cidr_wl, 8, 1)]
   subnet_cidr_svc   = [cidrsubnet(var.vnet_cidr_wl, 8, 2)]
-  subnet_cidr_vint  = [cidrsubnet(var.vnet_cidr_wl, 8, 3)]
-  subnet_cidr_mgmt     = [cidrsubnet(var.vnet_cidr_wl, 8, 4)]
-  subnet_cidr_agw = [cidrsubnet(var.vnet_cidr_wl, 8, 5)]
+  subnet_cidr_agw = [cidrsubnet(var.vnet_cidr_wl, 8, 3)]
+  subnet_cidr_apim = [cidrsubnet(var.vnet_cidr_wl, 8, 4)]
+  subnet_cidr_mgmt = [cidrsubnet(var.vnet_cidr_wl, 8, 5)]
+  subnet_cidr_vint = [cidrsubnet(var.vnet_cidr_wl, 8, 6)]
+  
   fw_private_ip = module.transit-vnet.azfw_private_ip
   dns_servers = [
     module.transit-vnet.azfw_private_ip
   ]
-
   name_hub = module.transit-vnet.name
   resource_group_name_hub = azurerm_resource_group.rgtran.name
   vnet_id_hub = module.transit-vnet.id

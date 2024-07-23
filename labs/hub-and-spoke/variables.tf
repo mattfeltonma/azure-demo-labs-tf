@@ -65,7 +65,7 @@ variable "private_dns_namespaces" {
 variable "sku_tools_size" {
   description = "The SKU to use for the tools virtual machine"
   type        = string
-  default     = "Standard_D2s_v3"
+  default     = "Standard_D2lds_v5"
 }
 
 variable "sku_tools_os" {

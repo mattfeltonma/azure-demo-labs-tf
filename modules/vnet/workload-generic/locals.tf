@@ -21,6 +21,7 @@ locals {
   subnet_name_vint = "snet-vint"
   subnet_name_mgmt = "snet-mgmt"
   subnet_name_agw  = "snet-agw"
+  subnet_name_apim = "snet-apim"
 
   # Enable flow log retention policy for 7 days
   flow_logs_enabled                  = true

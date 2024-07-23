@@ -69,6 +69,16 @@ variable "sub_id_shared" {
   type        = string
 }
 
+variable "subnet_cidr_agw" {
+  description = "The address space to assign to the subnet used for the Application Gateway"
+  type        = list(string)
+}
+
+variable "subnet_cidr_apim" {
+  description = "The address space to assign to the subnet used for the API Management instance"
+  type        = list(string)
+}
+
 variable "subnet_cidr_app" {
   description = "The address space to assign to the subnet used for the application tier"
   type        = list(string)
@@ -76,6 +86,11 @@ variable "subnet_cidr_app" {
 
 variable "subnet_cidr_data" {
   description = "The address space to assign to the subnet used for the data tier"
+  type        = list(string)
+}
+
+variable "subnet_cidr_mgmt" {
+  description = "The address space to assign to the subnet used for management services"
   type        = list(string)
 }
 
@@ -88,17 +103,6 @@ variable "subnet_cidr_vint" {
   description = "The address space to assign to the subnet used for virtual network integration"
   type        = list(string)
 }
-
-variable "subnet_cidr_mgmt" {
-  description = "The address space to assign to the subnet used for management services"
-  type        = list(string)
-}
-
-variable "subnet_cidr_agw" {
-  description = "The address space to assign to the subnet used for the Application Gateway"
-  type        = list(string)
-}
-
 variable "tags" {
   description = "The tags to apply to the resource"
   type        = map(string)
@@ -123,3 +127,5 @@ variable "vnet_id_hub" {
   description = "The resource id of the hub virtual network"
   type        = string
 }
+
+
