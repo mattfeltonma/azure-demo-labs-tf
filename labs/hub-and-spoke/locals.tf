@@ -8,6 +8,13 @@ locals {
     created_by    = data.azurerm_client_config.identity_config.object_id
   }
 
+  # Regionally specific Private DNS Zones
+  aks_private_dns_namespace = "privatelink.${var.location}.azmk8s.io"
+  regional_private_dns_namespaces = [
+    local.aks_private_dns_namespace
+  ]
+  private_dns_namespaces_with_regional_zones = concat(var.private_dns_namespaces, local.regional_private_dns_namespaces)
+
   tags = merge(
     var.tags,
     local.required_tags

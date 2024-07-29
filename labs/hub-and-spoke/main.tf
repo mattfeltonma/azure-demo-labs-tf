@@ -97,7 +97,7 @@ module "transit-vnet" {
   subnet_cidr_dns      = cidrsubnet(var.vnet_cidr_ss, 8, 1)
 
   address_space_onpremises = var.address_space_onpremises
-  address_space_apim = [cidrsubnet(var.vnet_cidr_wl, 8, 4)]
+  address_space_apim = cidrsubnet(var.vnet_cidr_wl, 8, 4)
   address_space_azure      = var.address_space_azure
   vnet_cidr_ss             = var.vnet_cidr_ss
   vnet_cidr_wl             = var.vnet_cidr_wl
@@ -242,7 +242,8 @@ resource "azurerm_virtual_network_dns_servers" "dns-servers" {
 module "workload-vnet" {
   depends_on = [
     azurerm_resource_group.rgwork,
-    module.shared-vnet
+    module.shared-vnet,
+    azurerm_virtual_network_dns_servers.dns-servers
   ]
 
   source              = "../../modules/vnet/hub-and-spoke/workload"

@@ -118,7 +118,7 @@ resource "azurerm_virtual_network_peering" "vnet_peering" {
 ## Create route tables
 ##
 module "route_table_dnsin" {
-  source              = "../../route-table"
+  source              = "../../../route-table"
   purpose             = "din"
   random_string       = var.random_string
   location            = var.location
@@ -137,7 +137,7 @@ module "route_table_dnsin" {
 }
 
 module "route_table_dnsout" {
-  source              = "../../route-table"
+  source              = "../../../route-table"
   purpose             = "dou"
   random_string       = var.random_string
   location            = var.location
@@ -156,7 +156,7 @@ module "route_table_dnsout" {
 }
 
 module "route_table_tools" {
-  source              = "../../route-table"
+  source              = "../../../route-table"
   purpose             = "too"
   random_string       = var.random_string
   location            = var.location
@@ -175,7 +175,7 @@ module "route_table_tools" {
 ## Create network security groups
 ##
 module "nsg_bastion" {
-  source              = "../../network-security-group"
+  source              = "../../../network-security-group"
   purpose             = "bst"
   random_string       = var.random_string
   location            = var.location
@@ -308,7 +308,7 @@ module "nsg_bastion" {
 }
 
 module "nsg_dnsin" {
-  source              = "../../network-security-group"
+  source              = "../../../network-security-group"
   purpose             = "din"
   random_string       = var.random_string
   location            = var.location
@@ -321,7 +321,7 @@ module "nsg_dnsin" {
 }
 
 module "nsg_dnsout" {
-  source              = "../../network-security-group"
+  source              = "../../../network-security-group"
   purpose             = "dou"
   random_string       = var.random_string
   location            = var.location
@@ -334,7 +334,7 @@ module "nsg_dnsout" {
 }
 
 module "nsg_pe" {
-  source              = "../../network-security-group"
+  source              = "../../../network-security-group"
   purpose             = "pe"
   random_string       = var.random_string
   location            = var.location
@@ -347,7 +347,7 @@ module "nsg_pe" {
 }
 
 module "nsg_tools" {
-  source              = "../../network-security-group"
+  source              = "../../../network-security-group"
   purpose             = "too"
   random_string       = var.random_string
   location            = var.location
@@ -490,7 +490,7 @@ resource "azapi_resource" "vnet_flow_log" {
 ##
 module "dns_resolver" {
 
-  source              = "../../dns/private-dns-resolver"
+  source              = "../../../dns/private-dns-resolver"
   random_string       = var.random_string
   location            = var.location
   resource_group_name = var.resource_group_name
@@ -509,7 +509,7 @@ module "bastion" {
     azurerm_subnet_network_security_group_association.subnet_nsg_association_bastion
   ]
 
-  source              = "../../bastion"
+  source              = "../../../bastion"
   random_string       = var.random_string
   location            = var.location
   resource_group_name = var.resource_group_name
@@ -527,7 +527,7 @@ module "windows_vm_tool" {
     module.dns_resolver
    ]
 
-  source              = "../../virtual-machine/windows-tools"
+  source              = "../../../virtual-machine/windows-tools"
   purpose             = "too"
   random_string       = var.random_string
   location            = var.location

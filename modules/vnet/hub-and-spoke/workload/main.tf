@@ -121,7 +121,7 @@ resource "azurerm_virtual_network_peering" "vnet_peering_to_spoke" {
 ##
 
 module "route_table_agw" {
-  source              = "../../route-table"
+  source              = "../../../route-table"
   purpose             = "agw"
   random_string       = var.random_string
   location            = var.location
@@ -157,7 +157,7 @@ module "route_table_agw" {
 }
 
 module "route_table_apim" {
-  source              = "../../route-table"
+  source              = "../../../route-table"
   purpose             = "apim"
   random_string       = var.random_string
   location            = var.location
@@ -181,7 +181,7 @@ module "route_table_apim" {
 }
 
 module "route_table_app" {
-  source              = "../../route-table"
+  source              = "../../../route-table"
   purpose             = "app"
   random_string       = var.random_string
   location            = var.location
@@ -200,7 +200,7 @@ module "route_table_app" {
 }
 
 module "route_table_data" {
-  source              = "../../route-table"
+  source              = "../../../route-table"
   purpose             = "data"
   random_string       = var.random_string
   location            = var.location
@@ -219,7 +219,7 @@ module "route_table_data" {
 }
 
 module "route_table_mgmt" {
-  source              = "../../route-table"
+  source              = "../../../route-table"
   purpose             = "mgmt"
   random_string       = var.random_string
   location            = var.location
@@ -238,7 +238,7 @@ module "route_table_mgmt" {
 }
 
 module "route_table_svc" {
-  source              = "../../route-table"
+  source              = "../../../route-table"
   purpose             = "svc"
   random_string       = var.random_string
   location            = var.location
@@ -251,7 +251,7 @@ module "route_table_svc" {
 }
 
 module "route_table_vint" {
-  source              = "../../route-table"
+  source              = "../../../route-table"
   purpose             = "vint"
   random_string       = var.random_string
   location            = var.location
@@ -273,7 +273,7 @@ module "route_table_vint" {
 ##
 
 module "nsg_agw" {
-  source              = "../../network-security-group"
+  source              = "../../../network-security-group"
   purpose             = "agw"
   random_string       = var.random_string
   location            = var.location
@@ -386,7 +386,7 @@ module "nsg_agw" {
 }
 
 module "nsg_apim" {
-  source              = "../../network-security-group"
+  source              = "../../../network-security-group"
   purpose             = "apim"
   random_string       = var.random_string
   location            = var.location
@@ -478,7 +478,7 @@ module "nsg_apim" {
 }
 
 module "nsg_app" {
-  source              = "../../network-security-group"
+  source              = "../../../network-security-group"
   purpose             = "app"
   random_string       = var.random_string
   location            = var.location
@@ -491,7 +491,7 @@ module "nsg_app" {
 }
 
 module "nsg_data" {
-  source              = "../../network-security-group"
+  source              = "../../../network-security-group"
   purpose             = "data"
   random_string       = var.random_string
   location            = var.location
@@ -504,7 +504,7 @@ module "nsg_data" {
 }
 
 module "nsg_mgmt" {
-  source              = "../../network-security-group"
+  source              = "../../../network-security-group"
   purpose             = "mgmt"
   random_string       = var.random_string
   location            = var.location
@@ -517,7 +517,7 @@ module "nsg_mgmt" {
 }
 
 module "nsg_svc" {
-  source              = "../../network-security-group"
+  source              = "../../../network-security-group"
   purpose             = "svc"
   random_string       = var.random_string
   location            = var.location
@@ -530,7 +530,7 @@ module "nsg_svc" {
 }
 
 module "nsg_vint" {
-  source              = "../../network-security-group"
+  source              = "../../../network-security-group"
   purpose             = "vint"
   random_string       = var.random_string
   location            = var.location
@@ -710,7 +710,7 @@ resource "azurerm_subnet_route_table_association" "route_table_association_vint"
 ## Create a user-assigned managed identity
 ##
 module "managed_identity" {
-  source              = "../../managed-identity"
+  source              = "../../../managed-identity"
   purpose             = "wlp"
   random_string       = var.random_string
   location            = var.location
@@ -725,7 +725,7 @@ module "key_vault" {
     module.managed_identity
   ]
 
-  source              = "../../key-vault"
+  source              = "../../../key-vault"
   purpose             = "wlp"
   random_string       = var.random_string
   location            = var.location
@@ -739,7 +739,7 @@ module "key_vault" {
 ## Create a Private Endpoint for the Key Vault
 ##
 module "private_endpoint_kv" {
-  source              = "../../private-endpoint"
+  source              = "../../../private-endpoint"
   random_string       = var.random_string
   location            = var.location
   resource_group_name = var.resource_group_name
