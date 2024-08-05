@@ -121,7 +121,7 @@ module "workload-vnet" {
   subnet_cidr_apim = [cidrsubnet(var.vnet_cidr_wl, 8, 4)]
   subnet_cidr_mgmt = [cidrsubnet(var.vnet_cidr_wl, 8, 5)]
   subnet_cidr_vint = [cidrsubnet(var.vnet_cidr_wl, 8, 6)]
-  subnet_cidr_tool = [cidrsubnet(var.vnet_cidr_wl, 8, 7)]
+  subnet_cidr_tools = [cidrsubnet(var.vnet_cidr_wl, 8, 7)]
   trusted_ip_address = var.trusted_ip_address
 
   law_resource_id      = module.law.id
