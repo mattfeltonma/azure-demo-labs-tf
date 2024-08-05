@@ -13,6 +13,11 @@ output "subnet_id_agw" {
   description = "The resource id of the Application Gateway subnet"
 }
 
+output "subnet_id_apim" {
+  value       = azurerm_subnet.subnet_apim.id
+  description = "The resource id of the API Management subnet"
+}
+
 output "subnet_id_app" {
   value       = azurerm_subnet.subnet_app.id
   description = "The resource id of the application subnet"

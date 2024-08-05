@@ -104,7 +104,7 @@ resource "azurerm_subnet" "subnet_firewall" {
 ## Create a virtual network gateway
 ##
 module "gateway" {
-  source              = "../../virtual-network-gateway"
+  source              = "../../../virtual-network-gateway"
   random_string       = var.random_string
   location            = var.location
   resource_group_name = var.resource_group_name
@@ -119,7 +119,7 @@ module "gateway" {
 ## Create the Azure Firewall instance
 ##
 module "firewall" {
-  source              = "../../firewall"
+  source              = "../../../firewall"
   random_string       = var.random_string
   location            = var.location
   resource_group_name = var.resource_group_name
@@ -127,6 +127,7 @@ module "firewall" {
   firewall_subnet_id = azurerm_subnet.subnet_firewall.id
   dns_servers = var.dns_servers
   dns_cidr = var.subnet_cidr_dns
+  address_space_apim = var.address_space_apim
   address_space_azure = var.address_space_azure
   address_space_onpremises = var.address_space_onpremises
 
@@ -145,7 +146,7 @@ module "route_table_gateway" {
     module.firewall 
   ]
 
-  source              = "../../route-table"
+  source              = "../../../route-table"
   purpose             = "vgw"
   random_string       = var.random_string
   location            = var.location

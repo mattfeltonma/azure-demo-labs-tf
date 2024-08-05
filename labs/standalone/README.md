@@ -1,31 +1,24 @@
-# Azure Hub and Spoke Lab
+# Azure Standalone Spoke
 
 ## Updates
-* 7/22/2024
-* * Added subnets, route tables, and network security groups to allow for deployment of Application Gateway or API Management deployed in internal mode
-* * Added required rules for internal API Management to Azure Firewall rules
-* 6/07/2024
-* * Initial release
+8/5/2024 - Initial release
 
 ## Overview
-The Terraform code in this repository provisions an enterprise-like lab environment for learning and experimentation. The environment is built to include infrastructure components commmon to enterprise environments. These components include a security appliance for centralized mediation, logging, and packet inspection, DNS services, secure remote access, and logging.
+The Terraform code in this repository deploys a small environment that can be used affordably experiment with Azure products in an enterprise-like environment. This environment is built for standalone workloads and includes core infrastructure services such as DNS, network mediation, and secure remote access.
 
 ## Architecture
-The environment is deployed across three resource groups. One resource group is dedicated to network components (transit), another to shared infrastructure services (shared services), and the last to workload components.
+The environment is deployed in a single resource group. 
 
-It uses a [hub and spoke architecture](https://docs.microsoft.com/en-us/azure/architecture/reference-architectures/hybrid-networking/hub-spoke?tabs=cli) where all north, south, east, and west traffic is routed through an Azure Firewall deployed in the transit virtual network. Shared services like DNS, provided by Azure Private DNS Resolver, are deployed in a spoke attached to the hub. Another spoke is attached to the hub configured with a variety of subnets to fit most workload purposes.
+It uses a stand-alone virtual network. The virtual network is broken into multiple subnets to support common Azure workloads. Each virtual network includes a custom route table (where relevant) and network security group. Subnets for core infrastructure components such as Azure API Management and Azure Application Gateway include required network security group rules and user-defined routes.
 
 Other features include:
 
-1) DNS Query logging through Azure Firewall
-2) Azure VPN Gateway to support hybrid connectivity
-3) VNet Flow Logs and traffic analytics to provide for insight into network traffic flows
-4) Azure Bastion to provide for secure remote access
-5) Windows virtual machine provisioned with a variety of tools including Azure Powershell, Azure CLI, and Visual Studio Code
-6) Diagnostic logging enabled for all services that support it with logs being sent to a central Log Analytics Workspace
-7) Private DNS Zones for commonly used services linked to the shared services virtual network to support centralized DNS resolution
-8) Managed identity and Azure Key Vault provisioned for use with application workloads
-9) Centralized Azure Key Vault which stores username and password configured on the virtual machine
+1) VNet Flow Logs and traffic analytics to provide for insight into network traffic flows
+2) Windows virtual machine provisioned with a variety of tools including Azure Powershell, Azure CLI, and Visual Studio Code
+3) Diagnostic logging enabled for all services that support it with logs being sent to a central Log Analytics Workspace
+4) Private DNS Zones for commonly used services linked to the workload virtual network
+5) Managed identity and Azure Key Vault provisioned for use with application workloads
+6) Centralized Azure Key Vault which stores username and password configured on the virtual machine
 
 ![lab image](assets/lab-visual.svg)
 
@@ -61,8 +54,10 @@ Other features include:
 
 * admin_password - This is the password configured for the administrator account on the virtual machine. This is stored in the central Key Vault for reference.
 
+* trusted_ip_address - This is the IP address that is granted access access to establish a remote desktop connection to the Windows virtual machine.
+
 3. Run the following command to initialize Terraform.
 `terraform init`
 
-4. Run the following command to deploy the resources. This lab deploys several resources at once and can hit Azure ARM REST API limits. It's recommended ot set the parallelism to 3 or lower to mitigate the risks of hitting these API limits and the deployment failing.
-`terraform apply -parallelism=3`
+4. Run the following command to deploy the resources. This lab deploys several resources at once and can hit Azure ARM REST API limits. It's recommended ot set the parallelism to 5 or lower to mitigate the risks of hitting these API limits and the deployment failing.
+`terraform apply -parallelism=5`

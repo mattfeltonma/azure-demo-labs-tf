@@ -3,6 +3,11 @@ variable "address_space_azure" {
   type        = string
 }
 
+variable "address_space_apim" {
+  description = "The CIDR block the internally-facing APIM instance is deployed to"
+  type        = string
+}
+
 variable "address_space_onpremises" {
   description = "The address space used on-premises"
   type        = string
