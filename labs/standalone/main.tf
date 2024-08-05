@@ -13,7 +13,7 @@ resource "random_string" "unique" {
 #
 resource "azurerm_resource_group" "rgwork" {
 
-  name     = "rgaistudio${local.location_short}${random_string.unique.result}"
+  name     = "rgwork${local.location_short}${random_string.unique.result}"
   location = var.location
 
   tags = local.tags

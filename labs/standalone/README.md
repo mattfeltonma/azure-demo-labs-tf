@@ -1,7 +1,8 @@
 # Azure Standalone Spoke
 
 ## Updates
-8/5/2024 - Initial release
+* 8/5/2024
+  * Initial release
 
 ## Overview
 The Terraform code in this repository deploys a small environment that can be used affordably experiment with Azure products in an enterprise-like environment. This environment is built for standalone workloads and includes core infrastructure services such as DNS, network mediation, and secure remote access.
@@ -40,7 +41,7 @@ Other features include:
 
 2. Create a [terraform tfvars file](https://developer.hashicorp.com/terraform/language/values/variables) that includes the variables below. You can also pass these variables at the command line when running terraform apply.
 
-* key_vault_admin - This is the object id you obtained from the prerequiste step 2.
+* key_vault_admin - This is the object id you obtained from the prerequisites step 2.
 
 * tags - These are the tags you want associated to the resource. By default two tags will be added in addition to the tags you specify. A createdBy tag will be added to each resource with the objectId of the user who created the resources. A createdTime tag will be added as well indicating the time the resource was created. Example: {environment = "lab", product = "test"}
 

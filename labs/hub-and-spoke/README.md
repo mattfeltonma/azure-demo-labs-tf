@@ -2,10 +2,10 @@
 
 ## Updates
 * 7/22/2024
-* * Added subnets, route tables, and network security groups to allow for deployment of Application Gateway or API Management deployed in internal mode
-* * Added required rules for internal API Management to Azure Firewall rules
+  * Added subnets, route tables, and network security groups to allow for deployment of Application Gateway or API Management deployed in internal mode
+  * Added required rules for internal API Management to Azure Firewall rules
 * 6/07/2024
-* * Initial release
+  * Initial release
 
 ## Overview
 The Terraform code in this repository provisions an enterprise-like lab environment for learning and experimentation. The environment is built to include infrastructure components commmon to enterprise environments. These components include a security appliance for centralized mediation, logging, and packet inspection, DNS services, secure remote access, and logging.
@@ -47,7 +47,7 @@ Other features include:
 
 2. Create a [terraform tfvars file](https://developer.hashicorp.com/terraform/language/values/variables) that includes the variables below. You can also pass these variables at the command line when running terraform apply.
 
-* key_vault_admin - This is the object id you obtained from the prerequiste step 2.
+* key_vault_admin - This is the object id you obtained from the prerequisites step 2.
 
 * tags - These are the tags you want associated to the resource. By default two tags will be added in addition to the tags you specify. A createdBy tag will be added to each resource with the objectId of the user who created the resources. A createdTime tag will be added as well indicating the time the resource was created. Example: {environment = "lab", product = "test"}
 
