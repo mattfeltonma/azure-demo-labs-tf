@@ -110,7 +110,7 @@ variable "subnet_cidr_svc" {
   type        = list(string)
 }
 
-variable "subnet_cidr_tool" {
+variable "subnet_cidr_tools" {
   description = "The address space to assign to the subnet used for virtual machines running tools"
   type        = list(string)
 }
@@ -139,4 +139,8 @@ variable "traffic_analytics_workspace_id" {
   type        = string
 }
 
+variable "trusted_ip_address" {
+  description = "The public IP address of a trusted endpoint that will be allowed to RDP and SSH to the tools servers"
+  type        = string
+}
 

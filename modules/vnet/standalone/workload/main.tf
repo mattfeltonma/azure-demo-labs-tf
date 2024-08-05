@@ -86,12 +86,12 @@ resource "azurerm_subnet" "subnet_svc" {
   private_endpoint_network_policies = local.private_endpoint_network_policies
 }
 
-resource "azurerm_subnet" "subnet_tool" {
+resource "azurerm_subnet" "subnet_tools" {
 
-  name                              = local.subnet_name_tool
+  name                              = local.subnet_name_tools
   resource_group_name               = var.resource_group_name
   virtual_network_name              = azurerm_virtual_network.vnet.name
-  address_prefixes                  = var.subnet_cidr_tool
+  address_prefixes                  = var.subnet_cidr_tools
   private_endpoint_network_policies = local.private_endpoint_network_policies
 }
 
@@ -195,9 +195,9 @@ module "route_table_svc" {
   ]
 }
 
-module "route_table_tool" {
+module "route_table_tools" {
   source              = "../../../route-table"
-  purpose             = "tool"
+  purpose             = "tools"
   random_string       = var.random_string
   location            = var.location
   resource_group_name = var.resource_group_name
@@ -481,9 +481,9 @@ module "nsg_svc" {
   ]
 }
 
-module "nsg_tool" {
+module "nsg_tools" {
   source              = "../../../network-security-group"
-  purpose             = "tool"
+  purpose             = "tools"
   random_string       = var.random_string
   location            = var.location
   resource_group_name = var.resource_group_name
@@ -491,6 +491,22 @@ module "nsg_tool" {
 
   law_resource_id = var.law_resource_id
   security_rules = [
+
+    {
+      name                   = "AllowTrustedIp"
+      description            = "Allow HTTP and SSH from a trusted IP address"
+      priority               = 1000
+      direction              = "Inbound"
+      access                 = "Allow"
+      protocol               = "Tcp"
+      source_port_range      = "*"
+      destination_port_ranges = [
+        22,
+        3389
+      ]
+      source_address_prefix = var.trusted_ip_address
+      destination_address_prefix = "VirtualNetwork"
+    },
   ]
 }
 
@@ -569,14 +585,14 @@ resource "azurerm_subnet_network_security_group_association" "subnet_nsg_associa
   network_security_group_id = module.nsg_svc.id
 }
 
-resource "azurerm_subnet_network_security_group_association" "subnet_nsg_association_tool" {
+resource "azurerm_subnet_network_security_group_association" "subnet_nsg_association_tools" {
   depends_on = [
-    azurerm_subnet.subnet_tool,
-    module.nsg_tool
+    azurerm_subnet.subnet_tools,
+    module.nsg_tools
   ]
 
-  subnet_id                 = azurerm_subnet.subnet_tool.id
-  network_security_group_id = module.nsg_tool.id
+  subnet_id                 = azurerm_subnet.subnet_tools.id
+  network_security_group_id = module.nsg_tools.id
 }
 
 resource "azurerm_subnet_network_security_group_association" "subnet_nsg_association_vint" {
@@ -657,15 +673,15 @@ resource "azurerm_subnet_route_table_association" "route_table_association_svc" 
   route_table_id = module.route_table_svc.id
 }
 
-resource "azurerm_subnet_route_table_association" "route_table_association_tool" {
+resource "azurerm_subnet_route_table_association" "route_table_association_tools" {
   depends_on = [
-    azurerm_subnet.subnet_tool,
-    azurerm_subnet_network_security_group_association.subnet_nsg_association_tool,
-    module.route_table_tool
+    azurerm_subnet.subnet_tools,
+    azurerm_subnet_network_security_group_association.subnet_nsg_association_tools,
+    module.route_table_tools
   ]
 
-  subnet_id      = azurerm_subnet.subnet_tool.id
-  route_table_id = module.route_table_tool.id
+  subnet_id      = azurerm_subnet.subnet_tools.id
+  route_table_id = module.route_table_tools.id
 }
 
 resource "azurerm_subnet_route_table_association" "route_table_association_vint" {
@@ -792,6 +808,23 @@ resource "azapi_resource" "vnet_flow_log" {
   tags = var.tags
 }
 
+module "public_ip_address_windows_tool" {
+  depends_on = [ 
+    azapi_resource.vnet_flow_log 
+  ]
+
+  source              = "../../../public-ip"
+  resource_group_name = var.resource_group_name
+  location = var.location
+  
+  purpose = "wto"
+  random_string = var.random_string
+  law_resource_id = var.law_resource_id
+  tags = var.tags
+
+
+}
+
 ## Deploy Windows Tool server
 ##
 module "windows_vm_tool" {
@@ -815,7 +848,9 @@ module "windows_vm_tool" {
     sku       = var.sku_tools_os
     version   = "latest"
   }
-  subnet_id = azurerm_subnet.subnet_tool.id
+
+  public_ip_address_id = module.public_ip_address_windows_tool.id
+  subnet_id = azurerm_subnet.subnet_tools.id
 
   tags = var.tags
 }

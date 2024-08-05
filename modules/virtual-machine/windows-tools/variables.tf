@@ -76,7 +76,7 @@ variable "private_ip_address_allocation" {
 }
 
 variable "public_ip_address_id" {
-  description = "The ID of the public IP address to associate with the virtual machine"
+  description = "The resource ID of the public IP address to associate with the virtual machine"
   type        = string
   default     = null
 }

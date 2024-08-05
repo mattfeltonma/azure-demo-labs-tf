@@ -202,7 +202,7 @@ module "private_dns_zones" {
   resource_group_name = azurerm_resource_group.rgshared.name
 
   for_each = {
-    for zone in var.private_dns_namespaces :
+    for zone in local.private_dns_namespaces_with_regional_zones :
     zone => zone
   }
 
@@ -218,6 +218,9 @@ resource "null_resource" "update-policy-dns" {
   depends_on = [
     module.private_dns_zones
   ]
+  triggers = {
+    always_run = timestamp()
+  }
   provisioner "local-exec" {
     command = <<EOF
     az network firewall policy update --ids ${module.transit-vnet.policy_id} --dns-servers ${module.shared-vnet.private_resolver_inbound_endpoint_ip}

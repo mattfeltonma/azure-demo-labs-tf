@@ -79,6 +79,11 @@ variable "tags" {
   type        = map(string)
 }
 
+variable "trusted_ip_address" {
+  description = "The public IP address of a trusted endpoint that will be allowed to RDP and SSH to the tools servers"
+  type        = string
+}
+
 variable "vnet_cidr_wl" {
   description = "The virtual network CIDR block for the workload virtual network"
   type        = string

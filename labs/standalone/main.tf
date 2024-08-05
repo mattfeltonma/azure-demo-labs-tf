@@ -13,7 +13,7 @@ resource "random_string" "unique" {
 #
 resource "azurerm_resource_group" "rgwork" {
 
-  name     = "rgwork${local.location_short}${random_string.unique.result}"
+  name     = "rgaistudio${local.location_short}${random_string.unique.result}"
   location = var.location
 
   tags = local.tags
@@ -93,8 +93,6 @@ resource "azurerm_key_vault_secret" "vm-credentials" {
   key_vault_id = module.central-keyvault.id
 }
 
-
-
 ## Create a workload virtual network
 ##
 module "workload-vnet" {
@@ -113,7 +111,7 @@ module "workload-vnet" {
   sku_tools_os = var.sku_tools_os
   sku_tools_size = var.sku_tools_size
 
-  private_dns_namespaces = var.private_dns_namespaces
+  private_dns_namespaces = local.private_dns_namespaces_with_regional_zones
 
   address_space_vnet = [var.vnet_cidr_wl]
   subnet_cidr_app    = [cidrsubnet(var.vnet_cidr_wl, 8, 0)]
@@ -124,6 +122,7 @@ module "workload-vnet" {
   subnet_cidr_mgmt = [cidrsubnet(var.vnet_cidr_wl, 8, 5)]
   subnet_cidr_vint = [cidrsubnet(var.vnet_cidr_wl, 8, 6)]
   subnet_cidr_tool = [cidrsubnet(var.vnet_cidr_wl, 8, 7)]
+  trusted_ip_address = var.trusted_ip_address
 
   law_resource_id      = module.law.id
   dce_id = module.law.dce_id

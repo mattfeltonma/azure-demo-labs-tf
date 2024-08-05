@@ -8,7 +8,7 @@
 * * Initial release
 
 ## Overview
-The Terraform code in this repository provisions an enterprise-like lab environment for learning and experimentation. The environment is built to include infrastructure components commmon to enterprise environments. This components include a security appliance for centralized mediation, logging, and packet inspection, DNS services, secure remote access, and logging.
+The Terraform code in this repository provisions an enterprise-like lab environment for learning and experimentation. The environment is built to include infrastructure components commmon to enterprise environments. These components include a security appliance for centralized mediation, logging, and packet inspection, DNS services, secure remote access, and logging.
 
 ## Architecture
 The environment is deployed across three resource groups. One resource group is dedicated to network components (transit), another to shared infrastructure services (shared services), and the last to workload components.
@@ -38,9 +38,9 @@ Other features include:
 
 **az ad user show --id someuser@sometenant.com --query id --output tsv**
 
-3. Enable Network Watcher in the region you plan to deploy the resources using the Azure Portal method described in this link. Do not use the CLI option because the templates expect the Network Watcher resource to be named NetworkWatcher_REGION, such as NetworkWatcher_eastus2. The CLI names the resource watcher_REGION such as watcher_eastus2 which will cause the deployment of the environment to fail.
+4. Enable Network Watcher in the region you plan to deploy the resources using the Azure Portal method described in this link. Do not use the CLI option because the templates expect the Network Watcher resource to be named NetworkWatcher_REGION, such as NetworkWatcher_eastus2. The CLI names the resource watcher_REGION such as watcher_eastus2 which will cause the deployment of the environment to fail.
 
-4. You must have at least Terraform version 1.8.3 installed on your machine.
+5. You must have at least Terraform version 1.8.3 installed on your machine.
 
 ## Installation
 1. Clone the repository.
@@ -64,5 +64,5 @@ Other features include:
 3. Run the following command to initialize Terraform.
 `terraform init`
 
-4. Run the following command to deploy the resources. This lab deploys several resources at once and can hit Azure ARM REST API limits. It's recommended ot set the parallelism to 5 or lower to mitigate the risks of hitting these API limits and the deployment failing.
-`terraform apply -parallelism=5`
+4. Run the following command to deploy the resources. This lab deploys several resources at once and can hit Azure ARM REST API limits. It's recommended ot set the parallelism to 3 or lower to mitigate the risks of hitting these API limits and the deployment failing.
+`terraform apply -parallelism=3`

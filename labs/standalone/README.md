@@ -1,27 +1,24 @@
-# Azure Hub and Spoke Lab
+# Azure Standalone Spoke
 
 ## Updates
-6/7/2024 - Initial release
+8/5/2024 - Initial release
 
 ## Overview
-The Terraform code in this repository provisions an enterprise-like lab environment for learning and experimentation. The environment is built to include infrastructure components commmon to enterprise environments. This components include a security appliance for centralized mediation, logging, and packet inspection, DNS services, secure remote access, and logging.
+The Terraform code in this repository deploys a small environment that can be used affordably experiment with Azure products in an enterprise-like environment. This environment is built for standalone workloads and includes core infrastructure services such as DNS, network mediation, and secure remote access.
 
 ## Architecture
-The environment is deployed across three resource groups. One resource group is dedicated to network components (transit), another to shared infrastructure services (shared services), and the last to workload components.
+The environment is deployed in a single resource group. 
 
-It uses a [hub and spoke architecture](https://docs.microsoft.com/en-us/azure/architecture/reference-architectures/hybrid-networking/hub-spoke?tabs=cli) where all north, south, east, and west traffic is routed through an Azure Firewall deployed in the transit virtual network. Shared services like DNS, provided by Azure Private DNS Resolver, are deployed in a spoke attached to the hub. Another spoke is attached to the hub configured with a variety of subnets to fit most workload purposes.
+It uses a stand-alone virtual network. The virtual network is broken into multiple subnets to support common Azure workloads. Each virtual network includes a custom route table (where relevant) and network security group. Subnets for core infrastructure components such as Azure API Management and Azure Application Gateway include required network security group rules and user-defined routes.
 
 Other features include:
 
-1) DNS Query logging through Azure Firewall
-2) Azure VPN Gateway to support hybrid connectivity
-3) VNet Flow Logs and traffic analytics to provide for insight into network traffic flows
-4) Azure Bastion to provide for secure remote access
-5) Windows virtual machine provisioned with a variety of tools including Azure Powershell, Azure CLI, and Visual Studio Code
-6) Diagnostic logging enabled for all services that support it with logs being sent to a central Log Analytics Workspace
-7) Private DNS Zones for commonly used services linked to the shared services virtual network to support centralized DNS resolution
-8) Managed identity and Azure Key Vault provisioned for use with application workloads
-9) Centralized Azure Key Vault which stores username and password configured on the virtual machine
+1) VNet Flow Logs and traffic analytics to provide for insight into network traffic flows
+2) Windows virtual machine provisioned with a variety of tools including Azure Powershell, Azure CLI, and Visual Studio Code
+3) Diagnostic logging enabled for all services that support it with logs being sent to a central Log Analytics Workspace
+4) Private DNS Zones for commonly used services linked to the workload virtual network
+5) Managed identity and Azure Key Vault provisioned for use with application workloads
+6) Centralized Azure Key Vault which stores username and password configured on the virtual machine
 
 ![lab image](assets/lab-visual.svg)
 
@@ -34,9 +31,9 @@ Other features include:
 
 **az ad user show --id someuser@sometenant.com --query id --output tsv**
 
-3. Enable Network Watcher in the region you plan to deploy the resources using the Azure Portal method described in this link. Do not use the CLI option because the templates expect the Network Watcher resource to be named NetworkWatcher_REGION, such as NetworkWatcher_eastus2. The CLI names the resource watcher_REGION such as watcher_eastus2 which will cause the deployment of the environment to fail.
+4. Enable Network Watcher in the region you plan to deploy the resources using the Azure Portal method described in this link. Do not use the CLI option because the templates expect the Network Watcher resource to be named NetworkWatcher_REGION, such as NetworkWatcher_eastus2. The CLI names the resource watcher_REGION such as watcher_eastus2 which will cause the deployment of the environment to fail.
 
-4. You must have at least Terraform version 1.8.3 installed on your machine.
+5. You must have at least Terraform version 1.8.3 installed on your machine.
 
 ## Installation
 1. Clone the repository.
@@ -56,6 +53,8 @@ Other features include:
 * admin_username - This is the username configured for the administrator account on the virtual machine. This is stored in the central Key Vault for reference.
 
 * admin_password - This is the password configured for the administrator account on the virtual machine. This is stored in the central Key Vault for reference.
+
+* trusted_ip_address - This is the IP address that is granted access access to establish a remote desktop connection to the Windows virtual machine.
 
 3. Run the following command to initialize Terraform.
 `terraform init`
