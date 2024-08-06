@@ -22,13 +22,12 @@ variable "admin_password" {
 variable "key_vault_admin" {
   description = "The object id of the user or service principal to assign the Key Vault Administrator role to"
   type        = string
-
 }
 
 variable "network_watcher_name" {
   description = "The name of the network watcher resource"
   type        = string
-  default    = "NetworkWatcher_"
+  default     = "NetworkWatcher_"
 }
 
 variable "network_watcher_resource_group_name" {
@@ -45,7 +44,7 @@ variable "location" {
 variable "private_dns_namespaces" {
   description = "The private DNS zones to create and link to the shared services virtual network"
   type        = list(string)
-  default    = [
+  default = [
     "privatelink.azurecr.io",
     "privatelink.database.windows.net",
     "privatelink.blob.core.windows.net",
@@ -87,5 +86,5 @@ variable "trusted_ip_address" {
 variable "vnet_cidr_wl" {
   description = "The virtual network CIDR block for the workload virtual network"
   type        = string
-  default = "10.52.0.0/16"
+  default     = "10.52.0.0/16"
 }
