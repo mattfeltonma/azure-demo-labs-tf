@@ -57,7 +57,10 @@ variable "private_dns_namespaces" {
     "privatelink.servicebus.windows.net",
     "privatelink.eventgrid.azure.net",
     "privatelink.cosmos.azure.com",
-    "privatelink.openai.azure.com"
+    "privatelink.openai.azure.com",
+    "privatelink.notebooks.azure.net",
+    "privatelink.api.azureml.ms",
+    "privatelink.cognitiveservices.azure.com",
   ]
 }
 
