@@ -91,7 +91,7 @@ module "private_endpoint_st_aistudio_blob" {
 
   resource_name     = module.storage_account_ai_studio.name
   resource_id       = module.storage_account_ai_studio.id
-  subresource_names = ["blob"]
+  subresource_name = "blob"
 
   subnet_id = var.subnet_id
   private_dns_zone_ids = [
@@ -110,7 +110,7 @@ module "private_endpoint_st_data_blob" {
 
   resource_name     = module.storage_account_data.name
   resource_id       = module.storage_account_data.id
-  subresource_names = ["blob"]
+  subresource_name = "blob"
 
   subnet_id = var.subnet_id
   private_dns_zone_ids = [
@@ -129,7 +129,7 @@ module "private_endpoint_st_aistudio_file" {
 
   resource_name     = module.storage_account_ai_studio.name
   resource_id       = module.storage_account_ai_studio.id
-  subresource_names = ["file"]
+  subresource_name = "file"
 
   subnet_id = var.subnet_id
   private_dns_zone_ids = [
@@ -148,7 +148,7 @@ module "private_endpoint_st_data_file" {
 
   resource_name     = module.storage_account_data.name
   resource_id       = module.storage_account_data.id
-  subresource_names = ["file"]
+  subresource_name = "file"
 
 
   subnet_id = var.subnet_id
@@ -168,7 +168,7 @@ module "private_endpoint_kv" {
 
   resource_name     = module.keyvault_aistudio.name
   resource_id       = module.keyvault_aistudio.id
-  subresource_names = ["vault"]
+  subresource_name = "vault"
 
 
   subnet_id = var.subnet_id
