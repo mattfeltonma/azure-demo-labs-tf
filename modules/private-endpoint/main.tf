@@ -1,5 +1,5 @@
 resource "azurerm_private_endpoint" "pe" {
-  name                = "${local.pe_name}${var.resource_name}"
+  name                = "${local.pe_name}${var.resource_name}${var.subresource_names[0]}"
   location            = var.location
   resource_group_name = var.resource_group_name
   subnet_id           = var.subnet_id
@@ -8,7 +8,7 @@ resource "azurerm_private_endpoint" "pe" {
   private_service_connection {
     name                           = "${local.pe_conn_name}${var.resource_name}"
     private_connection_resource_id = var.resource_id
-    subresource_names = var.subresource_names
+    subresource_names = var.subresource_name
     is_manual_connection           = false
   }
 

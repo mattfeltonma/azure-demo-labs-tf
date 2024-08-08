@@ -28,9 +28,9 @@ variable "resource_id" {
   type        = string
 }
 
-variable "subresource_names" {
-  description = "The subresource names of the resource the private endpoint will connect to"
-  type        = list(string)
+variable "subresource_name" {
+  description = "The subresource name of the resource the private endpoint will connect to"
+  type        = string
 }
 
 variable "subnet_id" {

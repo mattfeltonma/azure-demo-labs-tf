@@ -747,7 +747,7 @@ module "private_endpoint_kv" {
 
   resource_name     = module.key_vault.name
   resource_id       = module.key_vault.id
-  subresource_names = ["vault"]
+  subresource_name = "vault"
 
 
   subnet_id = azurerm_subnet.subnet_svc.id
