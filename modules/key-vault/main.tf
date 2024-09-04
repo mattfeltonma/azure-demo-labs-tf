@@ -14,6 +14,11 @@ resource "azurerm_key_vault" "kv" {
   soft_delete_retention_days  = var.soft_delete_retention_days
   purge_protection_enabled    = var.purge_protection
 
+  network_acls {
+    default_action = var.firewall_default_action
+    bypass         = var.firewall_bypass
+    ip_rules       = var.firewall_ip_rules
+  }
   tags = var.tags
 
   lifecycle {

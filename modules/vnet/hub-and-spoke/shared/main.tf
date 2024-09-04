@@ -112,7 +112,7 @@ resource "azurerm_virtual_network_peering" "vnet_peering" {
   remote_virtual_network_id    = azurerm_virtual_network.vnet.id
   allow_virtual_network_access = true
   allow_forwarded_traffic      = true
-  allow_gateway_transit = true
+  allow_gateway_transit        = true
 }
 
 ## Create route tables
@@ -143,7 +143,7 @@ module "route_table_dnsout" {
   location            = var.location
   resource_group_name = var.resource_group_name
   tags                = var.tags
-  
+
   disable_bgp_route_propagation = true
   routes = [
     {
@@ -317,6 +317,33 @@ module "nsg_dnsin" {
 
   law_resource_id = var.law_resource_id
   security_rules = [
+    {
+      name                   = "AllowTcpDnsInbound"
+      description            = "Allow TCP DNS traffic"
+      priority               = 1000
+      direction              = "Inbound"
+      access                 = "Allow"
+      protocol               = "Tcp"
+      source_port_range      = "*"
+      destination_port_range = 53
+      source_address_prefixes = [
+        var.address_space_azure,
+        var.address_space_onpremises
+      ]
+      destination_address_prefix = "*"
+    },
+    {
+      name                       = "AllowUdppDnsInbound"
+      description                = "Allow UDP DNS traffic"
+      priority                   = 1100
+      direction                  = "Inbound"
+      access                     = "Allow"
+      protocol                   = "Udp"
+      source_port_range          = "*"
+      destination_port_range     = 53
+      source_address_prefix      = "Internet"
+      destination_address_prefix = "*"
+    }
   ]
 }
 
@@ -506,7 +533,8 @@ module "dns_resolver" {
 ##
 module "bastion" {
   depends_on = [
-    azurerm_subnet_network_security_group_association.subnet_nsg_association_bastion
+    azurerm_subnet_network_security_group_association.subnet_nsg_association_bastion,
+    module.dns_resolver
   ]
 
   source              = "../../../bastion"
@@ -523,9 +551,9 @@ module "bastion" {
 ## Deploy Windows Tool server
 ##
 module "windows_vm_tool" {
-  depends_on = [ 
+  depends_on = [
     module.dns_resolver
-   ]
+  ]
 
   source              = "../../../virtual-machine/windows-tools"
   purpose             = "too"
@@ -552,8 +580,8 @@ resource "azurerm_monitor_data_collection_rule_association" "dcra_win_tools" {
   depends_on = [
     module.windows_vm_tool
   ]
-  name = "${local.dcr_association}${module.windows_vm_tool.name}"
-  description = "Data Collection Rule Association for Windows Tools VM"
+  name                    = "${local.dcr_association}${module.windows_vm_tool.name}"
+  description             = "Data Collection Rule Association for Windows Tools VM"
   data_collection_rule_id = var.dcr_id_windows
   target_resource_id      = module.windows_vm_tool.id
 }

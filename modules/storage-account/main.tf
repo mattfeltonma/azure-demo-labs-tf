@@ -13,6 +13,13 @@ resource "azurerm_storage_account" "storage_account" {
   network_rules {
     default_action = var.network_access_default
     bypass         = var.network_trusted_services_bypass
+    dynamic "private_link_access" {
+      for_each = var.resource_access != null ? var.resource_access : []
+      content {
+        endpoint_resource_id = private_link_access.value.endpoint_resource_id
+        endpoint_tenant_id   = private_link_access.value.endpoint_tenant_id
+      }
+    }
   }
 
   lifecycle {
@@ -45,7 +52,7 @@ resource "azurerm_monitor_diagnostic_setting" "diag-blob" {
 
   depends_on = [
     azurerm_storage_account.storage_account,
-    azurerm_monitor_diagnostic_setting.diag-base]
+  azurerm_monitor_diagnostic_setting.diag-base]
 
   name                       = "diag-blob"
   target_resource_id         = "${azurerm_storage_account.storage_account.id}/blobServices/default"

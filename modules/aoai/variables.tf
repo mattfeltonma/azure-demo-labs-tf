@@ -1,7 +1,6 @@
-variable "ip_rules" {
-  description = "The IP rules that bypass the service firewall"
-  type        = list(string)
-  default    = [] 
+variable "custom_subdomain_name" {
+  description = "The custom sub domain name added to the OpenAI endpoint URL"
+  type        = string
 }
 
 variable "law_resource_id" {

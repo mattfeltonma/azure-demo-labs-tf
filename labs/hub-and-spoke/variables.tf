@@ -58,20 +58,23 @@ variable "private_dns_namespaces" {
     "privatelink.servicebus.windows.net",
     "privatelink.eventgrid.azure.net",
     "privatelink.cosmos.azure.com",
-    "privatelink.openai.azure.com"
+    "privatelink.openai.azure.com",
+    "privatelink.notebooks.azure.net",
+    "privatelink.api.azureml.ms",
+    "privatelink.cognitiveservices.azure.com",
   ]
 }
 
 variable "sku_tools_size" {
   description = "The SKU to use for the tools virtual machine"
   type        = string
-  default     = "Standard_D2lds_v5"
+  default     = "Standard_DC2s_v3"
 }
 
 variable "sku_tools_os" {
   description = "The operating system to use for the tools virtual machine"
   type        = string
-  default     = "2019-Datacenter"
+  default     = "2019-datacenter-gensecond"
 }
 
 variable "tags" {

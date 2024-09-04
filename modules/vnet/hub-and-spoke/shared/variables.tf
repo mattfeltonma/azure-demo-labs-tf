@@ -1,5 +1,10 @@
-variable "address_space_vnet" {
-  description = "The address space to assign to the virtual network"
+variable "address_space_azure" {
+  description = "The address space assigned to Azure"
+  type        = list(string)
+}
+
+variable "address_space_onpremises" {
+  description = "The address space assigned to on-premises"
   type        = list(string)
 }
 
