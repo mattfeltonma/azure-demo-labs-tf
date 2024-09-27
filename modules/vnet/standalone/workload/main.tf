@@ -744,6 +744,8 @@ module "key_vault" {
 
   law_resource_id    = var.law_resource_id
   kv_admin_object_id = module.managed_identity.principal_id
+
+  firewall_default_action = "Allow"
 }
 
 ## Create a Private Endpoint for the Key Vault
@@ -757,7 +759,7 @@ module "private_endpoint_kv" {
 
   resource_name     = module.key_vault.name
   resource_id       = module.key_vault.id
-  subresource_names = ["vault"]
+  subresource_name = "vault"
 
 
   subnet_id = azurerm_subnet.subnet_svc.id

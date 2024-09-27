@@ -108,6 +108,10 @@ resource "azurerm_virtual_network_peering" "vnet_peering_to_hub" {
 }
 
 resource "azurerm_virtual_network_peering" "vnet_peering_to_spoke" {
+  depends_on = [
+    azurerm_virtual_network_peering.vnet_peering_to_hub
+  ]
+
   name                         = "peer-hub-to-${local.vnet_name}${local.vnet_purpose}${local.location_short}${var.random_string}"
   resource_group_name          = var.resource_group_name_hub
   virtual_network_name         = var.name_hub
@@ -547,7 +551,8 @@ module "nsg_vint" {
 resource "azurerm_subnet_network_security_group_association" "subnet_nsg_association_agw" {
   depends_on = [
     azurerm_subnet.subnet_agw,
-    module.nsg_agw
+    module.nsg_agw,
+    azurerm_virtual_network_peering.vnet_peering_to_spoke
   ]
 
   subnet_id                 = azurerm_subnet.subnet_agw.id
@@ -557,7 +562,8 @@ resource "azurerm_subnet_network_security_group_association" "subnet_nsg_associa
 resource "azurerm_subnet_network_security_group_association" "subnet_nsg_association_apim" {
   depends_on = [
     azurerm_subnet.subnet_apim,
-    module.nsg_apim
+    module.nsg_apim,
+    azurerm_virtual_network_peering.vnet_peering_to_spoke
   ]
 
   subnet_id                 = azurerm_subnet.subnet_apim.id
@@ -567,7 +573,8 @@ resource "azurerm_subnet_network_security_group_association" "subnet_nsg_associa
 resource "azurerm_subnet_network_security_group_association" "subnet_nsg_association_app" {
   depends_on = [
     azurerm_subnet.subnet_app,
-    module.nsg_app
+    module.nsg_app,
+    azurerm_virtual_network_peering.vnet_peering_to_spoke
   ]
 
   subnet_id                 = azurerm_subnet.subnet_app.id
@@ -577,7 +584,8 @@ resource "azurerm_subnet_network_security_group_association" "subnet_nsg_associa
 resource "azurerm_subnet_network_security_group_association" "subnet_nsg_association_data" {
   depends_on = [
     azurerm_subnet.subnet_data,
-    module.nsg_data
+    module.nsg_data,
+    azurerm_virtual_network_peering.vnet_peering_to_spoke
   ]
 
   subnet_id                 = azurerm_subnet.subnet_data.id
@@ -587,7 +595,8 @@ resource "azurerm_subnet_network_security_group_association" "subnet_nsg_associa
 resource "azurerm_subnet_network_security_group_association" "subnet_nsg_association_mgmt" {
   depends_on = [
     azurerm_subnet.subnet_mgmt,
-    module.nsg_mgmt
+    module.nsg_mgmt,
+    azurerm_virtual_network_peering.vnet_peering_to_spoke
   ]
 
   subnet_id                 = azurerm_subnet.subnet_mgmt.id
@@ -597,7 +606,8 @@ resource "azurerm_subnet_network_security_group_association" "subnet_nsg_associa
 resource "azurerm_subnet_network_security_group_association" "subnet_nsg_association_svc" {
   depends_on = [
     azurerm_subnet.subnet_svc,
-    module.nsg_svc
+    module.nsg_svc,
+    azurerm_virtual_network_peering.vnet_peering_to_spoke
   ]
 
   subnet_id                 = azurerm_subnet.subnet_svc.id
@@ -607,7 +617,8 @@ resource "azurerm_subnet_network_security_group_association" "subnet_nsg_associa
 resource "azurerm_subnet_network_security_group_association" "subnet_nsg_association_vint" {
   depends_on = [
     azurerm_subnet.subnet_vint,
-    module.nsg_vint
+    module.nsg_vint,
+    azurerm_virtual_network_peering.vnet_peering_to_spoke
   ]
 
   subnet_id                 = azurerm_subnet.subnet_vint.id
@@ -734,6 +745,9 @@ module "key_vault" {
 
   law_resource_id    = var.law_resource_id
   kv_admin_object_id = module.managed_identity.principal_id
+
+  firewall_default_action = "Allow"
+  firewall_bypass = "AzureServices"
 }
 
 ## Create a Private Endpoint for the Key Vault
@@ -747,7 +761,7 @@ module "private_endpoint_kv" {
 
   resource_name     = module.key_vault.name
   resource_id       = module.key_vault.id
-  subresource_names = ["vault"]
+  subresource_name = "vault"
 
 
   subnet_id = azurerm_subnet.subnet_svc.id

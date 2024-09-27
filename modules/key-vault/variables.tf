@@ -16,6 +16,24 @@ variable "disk_encryption" {
   default = false
 }
 
+variable "firewall_bypass" {
+  description = "The bypass rules for the Key Vault firewall"
+  type        = string
+  default = "AzureServices"
+}
+
+variable "firewall_default_action" {
+  description = "The default action for the Key Vault firewall"
+  type        = string
+  default = "Deny"
+}
+
+variable "firewall_ip_rules" {
+  description = "The IPs to allowed to bypass the Key Vault firewall"
+  type        = list(string)
+  default = []
+}
+
 variable "kv_admin_object_id" {
   description = "The object id of the user or service principal to assign the Key Vault Administrator role to"
   type        = string

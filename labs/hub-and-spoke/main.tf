@@ -137,6 +137,8 @@ module "shared-vnet" {
   name_hub = module.transit-vnet.name
   resource_group_name_hub = azurerm_resource_group.rgtran.name
   vnet_id_hub = module.transit-vnet.id
+  address_space_onpremises = var.address_space_onpremises
+  address_space_azure      = var.address_space_azure
 
   law_resource_id      = module.law.id
   law_workspace_id     = module.law.workspace_id
@@ -172,6 +174,7 @@ module "central-keyvault" {
   purpose             = "cnt"
   law_resource_id     = module.law.id
   kv_admin_object_id  = var.key_vault_admin
+  firewall_default_action = "Allow"
 
   tags = local.tags
 }
@@ -282,7 +285,7 @@ module "workload-vnet" {
   traffic_analytics_workspace_id       = module.law.id
   traffic_analytics_workspace_location = module.law.location
 
-  tags = var.tags
+  tags = local.tags
 }
 
 

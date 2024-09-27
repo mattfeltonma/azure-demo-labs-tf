@@ -8,6 +8,15 @@ variable "location" {
   type = string
 }
 
+variable "resource_access" {
+  description = "The list of resource access rules to apply to the storage account"
+  type = list(object({
+    endpoint_resource_id         = string
+    endpoint_tenant_id           = optional(string)
+  }))
+  default = []
+}
+
 variable "purpose" {
   description = "The three-letter purpose code for the resource"
   type = string

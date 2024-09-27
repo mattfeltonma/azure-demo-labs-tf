@@ -224,8 +224,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "rule_collection_group_
         var.dns_cidr
       ]
       destination_ports = [
-        "22",
-        "3389"
+        "53"
       ]
     }
   }
