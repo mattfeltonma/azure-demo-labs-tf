@@ -3,7 +3,8 @@ locals {
     location_short = substr(var.location, 0, 2)
 
     # Standard naming convention for relevant resources
-    kv_name = "aist"
+    kv_name = "aml"
+    app_insights_name = "appin"
 
     # Settings for Azure Key Vault
     sku_name = "premium"

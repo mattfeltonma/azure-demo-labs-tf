@@ -4,6 +4,7 @@ locals {
 
     # Standard naming convention for relevant resources
     kv_name = "aist"
+    app_insights_name = "appin"
 
     # Settings for Azure Key Vault
     sku_name = "premium"

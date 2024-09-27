@@ -37,3 +37,8 @@ variable "tags" {
   description = "The tags to apply to the resource"
   type        = map(string)
 }
+
+variable "workload_vnet_location" {
+  description = "The region where the workload virtual network is located"
+  type        = string
+}

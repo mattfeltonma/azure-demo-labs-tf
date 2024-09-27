@@ -48,6 +48,18 @@ resource "azurerm_monitor_diagnostic_setting" "diag-base" {
   }
 }
 
+# Create Application Insights
+resource "azurerm_application_insights" "aml-appins" {
+  depends_on = [ 
+    azurerm_log_analytics_workspace.log_analytics_workspace 
+  ]
+  name                = "${local.app_insights_name}${var.purpose}${local.location_short}${var.random_string}"
+  location            = var.location
+  resource_group_name = azurerm_resource_group.rgwork.name
+  workspace_id = azurerm_log_analytics_workspace.log_analytics_workspace.id
+  application_type    = "other"
+}
+
 # Create storage account which will be default storage account for AML Workspace
 #
 module "storage_account_aml_default" {
@@ -59,7 +71,7 @@ module "storage_account_aml_default" {
   resource_group_name = azurerm_resource_group.rgwork.name
   resource_access = [
     {
-      endpoint_resource_id = "/subscriptions/*/resourcegroups/*/providers/Microsoft.MachineLearningServices/workspaces/*"
+      endpoint_resource_id = "/subscriptions/${var.sub_id}/resourcegroups/*/providers/Microsoft.MachineLearningServices/workspaces/*"
     }
   ]
   tags                = var.tags
@@ -78,7 +90,7 @@ module "storage_account_data" {
   resource_group_name = azurerm_resource_group.rgwork.name
   resource_access = [
     {
-      endpoint_resource_id = "/subscriptions/*/resourcegroups/*/providers/Microsoft.MachineLearningServices/workspaces/*"
+      endpoint_resource_id = "/subscriptions/${var.sub_id}/resourcegroups/*/providers/Microsoft.MachineLearningServices/workspaces/*"
     }
   ]
   tags                = var.tags
@@ -104,31 +116,17 @@ module "keyvault_aml" {
   firewall_bypass = "AzureServices"
 }
 
-# Create an Azure OpenAI Service instance
-#
-module "openai" {
-
-  source              = "../aoai"
-  random_string       = var.random_string
-  location            = "eastus"
-  resource_group_name = azurerm_resource_group.rgwork.name
-  purpose             = var.purpose
-  law_resource_id     = azurerm_log_analytics_workspace.log_analytics_workspace.id
-
-  tags = var.tags
-}
-
 ## Create a Private Endpoints for storage account and Key Vault
 ##
 module "private_endpoint_st_aml_blob" {
   source              = "../private-endpoint"
   random_string       = var.random_string
-  location            = var.location
+  location            = var.workload_vnet_location
   resource_group_name = azurerm_resource_group.rgwork.name
   tags                = var.tags
 
-  resource_name     = module.storage_account_ai_studio.name
-  resource_id       = module.storage_account_ai_studio.id
+  resource_name     = module.storage_account_aml_default.name
+  resource_id       = module.storage_account_aml_default.id
   subresource_name = "blob"
 
   subnet_id = var.subnet_id
@@ -142,7 +140,7 @@ module "private_endpoint_st_data_blob" {
 
   source              = "../private-endpoint"
   random_string       = var.random_string
-  location            = var.location
+  location            = var.workload_vnet_location
   resource_group_name = azurerm_resource_group.rgwork.name
   tags                = var.tags
 
@@ -161,12 +159,12 @@ module "private_endpoint_st_aml_file" {
 
   source              = "../private-endpoint"
   random_string       = var.random_string
-  location            = var.location
+  location            = var.workload_vnet_location
   resource_group_name = azurerm_resource_group.rgwork.name
   tags                = var.tags
 
-  resource_name     = module.storage_account_aml.name
-  resource_id       = module.storage_account_aml.id
+  resource_name     = module.storage_account_aml_default.name
+  resource_id       = module.storage_account_aml_default.id
   subresource_name = "file"
 
   subnet_id = var.subnet_id
@@ -180,7 +178,7 @@ module "private_endpoint_st_data_file" {
 
   source              = "../private-endpoint"
   random_string       = var.random_string
-  location            = var.location
+  location            = var.workload_vnet_location
   resource_group_name = azurerm_resource_group.rgwork.name
   tags                = var.tags
 
@@ -200,12 +198,12 @@ module "private_endpoint_st_aml_table" {
 
   source              = "../private-endpoint"
   random_string       = var.random_string
-  location            = var.location
+  location            = var.workload_vnet_location
   resource_group_name = azurerm_resource_group.rgwork.name
   tags                = var.tags
 
-  resource_name     = module.storage_account_aml.name
-  resource_id       = module.storage_account_aml.id
+  resource_name     = module.storage_account_aml_default.name
+  resource_id       = module.storage_account_aml_default.id
   subresource_name = "table"
 
   subnet_id = var.subnet_id
@@ -219,7 +217,7 @@ module "private_endpoint_st_data_table" {
 
   source              = "../private-endpoint"
   random_string       = var.random_string
-  location            = var.location
+  location            = var.workload_vnet_location
   resource_group_name = azurerm_resource_group.rgwork.name
   tags                = var.tags
 
@@ -239,12 +237,12 @@ module "private_endpoint_st_aml_queue" {
 
   source              = "../private-endpoint"
   random_string       = var.random_string
-  location            = var.location
+  location            = var.workload_vnet_location
   resource_group_name = azurerm_resource_group.rgwork.name
   tags                = var.tags
 
-  resource_name     = module.storage_account_aml.name
-  resource_id       = module.storage_account_aml.id
+  resource_name     = module.storage_account_aml_default.name
+  resource_id       = module.storage_account_aml_default.id
   subresource_name = "queue"
 
   subnet_id = var.subnet_id
@@ -258,7 +256,7 @@ module "private_endpoint_st_data_queue" {
 
   source              = "../private-endpoint"
   random_string       = var.random_string
-  location            = var.location
+  location            = var.workload_vnet_location
   resource_group_name = azurerm_resource_group.rgwork.name
   tags                = var.tags
 
@@ -278,12 +276,12 @@ module "private_endpoint_st_aml_dfs" {
 
   source              = "../private-endpoint"
   random_string       = var.random_string
-  location            = var.location
+  location            = var.workload_vnet_location
   resource_group_name = azurerm_resource_group.rgwork.name
   tags                = var.tags
 
-  resource_name     = module.storage_account_aml.name
-  resource_id       = module.storage_account_aml.id
+  resource_name     = module.storage_account_aml_default.name
+  resource_id       = module.storage_account_aml_default.id
   subresource_name = "dfs"
 
   subnet_id = var.subnet_id
@@ -297,7 +295,7 @@ module "private_endpoint_st_data_dfs" {
 
   source              = "../private-endpoint"
   random_string       = var.random_string
-  location            = var.location
+  location            = var.workload_vnet_location
   resource_group_name = azurerm_resource_group.rgwork.name
   tags                = var.tags
 
@@ -317,7 +315,7 @@ module "private_endpoint_kv" {
 
   source              = "../private-endpoint"
   random_string       = var.random_string
-  location            = var.location
+  location            = var.workload_vnet_location
   resource_group_name = azurerm_resource_group.rgwork.name
   tags                = var.tags
 
@@ -336,15 +334,15 @@ module "private_endpoint_kv" {
 # Note that user has already been granted the Key Vault Administrator role over the Key Vault
 #
 resource "azurerm_role_assignment" "blob_perm_aml_sa" {
-  name                 = uuidv5("dns", "${azurerm_resource_group.rgwork.name}${var.user_object_id}${module.storage_account_aml.name}blob")
-  scope                = module.storage_account_aml.id
+  name                 = uuidv5("dns", "${azurerm_resource_group.rgwork.name}${var.user_object_id}${module.storage_account_aml_default.name}blob")
+  scope                = module.storage_account_aml_default.id
   role_definition_name = "Storage Blob Data Contributor"
   principal_id         = var.user_object_id
 }
 
 resource "azurerm_role_assignment" "file_perm_aml_sa" {
-  name                 = uuidv5("dns", "${azurerm_resource_group.rgwork.name}${var.user_object_id}${module.storage_account_aml.name}file")
-  scope                = module.storage_account_aml.id
+  name                 = uuidv5("dns", "${azurerm_resource_group.rgwork.name}${var.user_object_id}${module.storage_account_aml_default.name}file")
+  scope                = module.storage_account_aml_default.id
   role_definition_name = "Storage File Data Privileged Contributor"
   principal_id         = var.user_object_id
 }
