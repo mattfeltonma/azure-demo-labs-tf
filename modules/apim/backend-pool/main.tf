@@ -5,7 +5,7 @@ resource "azapi_resource" "backend" {
   schema_validation_enabled = false
   body = jsonencode({
     properties = {
-      description = "This is a load balanced pool"
+      description = "This is a load balanced pool for ${var.pool_name}"
       type        = "pool"
       pool = {
         services = var.backends
