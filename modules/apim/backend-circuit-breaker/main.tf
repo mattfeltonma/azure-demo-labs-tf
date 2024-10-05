@@ -13,16 +13,20 @@ resource "azapi_resource" "backend" {
               errorReasons = [
                 "The backend service is throttling"
               ],
-              interval = "PT1M",
+              interval = "PT10S",
               statusCodeRanges = [
                 {
                   max = 429
                   min = 429
+                },
+                {
+                  max = 500
+                  min = 503
                 }
               ]
             }
             name             = "breakThrottling"
-            tripDuration     = "PT1M"
+            tripDuration     = "PT10S"
             acceptRetryAfter = true
           }
         ]

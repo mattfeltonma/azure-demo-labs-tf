@@ -8,6 +8,7 @@ resource "azurerm_storage_account" "storage_account" {
   account_kind             = var.storage_account_kind
   account_tier             = var.storage_account_tier
   account_replication_type = var.storage_account_replication_type
+  shared_access_key_enabled = true
 
 
   network_rules {
