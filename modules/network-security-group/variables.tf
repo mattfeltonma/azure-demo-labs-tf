@@ -3,6 +3,11 @@ variable "location" {
   type        = string
 }
 
+variable "location_code" {
+  description = "The location code to append to the resource name"
+  type = string
+}
+
 variable "law_resource_id" {
   description = "The resource id of the log analytics workspace to send diagnostic logs to"
   type        = string

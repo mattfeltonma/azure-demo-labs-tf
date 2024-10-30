@@ -3,8 +3,13 @@ variable "address_space_onpremises" {
   type        = string
 }
 
-variable "address_space_azure" {
-  description = "The address space in Azure"
+variable "address_space_cloud" {
+  description = "The address space in the cloud"
+  type        = string
+}
+
+variable "address_space_azure_region" {
+  description = "The address space in the Azure region"
   type        = string
 }
 

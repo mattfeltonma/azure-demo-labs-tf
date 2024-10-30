@@ -1,4 +1,7 @@
 locals {
+  # Configure standard naming convention for relevant resources
+  vm_name = "vm"
+  nic_name = "nic"
 
   # Network variables
   ip_configuration_name = "primary"

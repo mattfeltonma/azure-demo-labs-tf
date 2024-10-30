@@ -8,6 +8,11 @@ variable "location" {
   type        = string
 }
 
+variable "location_code" {
+  description = "The location code to append to the resource name"
+  type = string
+}
+
 variable "purpose" {
   description = "The three character purpose code for the virtual network gateway"
   type        = string

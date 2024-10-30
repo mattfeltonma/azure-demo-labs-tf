@@ -115,7 +115,7 @@ module "route_table_agw" {
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
-  disable_bgp_route_propagation = true
+  bgp_route_propagation_enabled = false
   routes = [
     {
       name           = "udr-default"
@@ -133,7 +133,7 @@ module "route_table_apim" {
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
-  disable_bgp_route_propagation = true
+  bgp_route_propagation_enabled = false
   routes = [
     {
       name           = "udr-api-management"
@@ -151,7 +151,7 @@ module "route_table_app" {
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
-  disable_bgp_route_propagation = true
+  bgp_route_propagation_enabled = false
   routes = [
   ]
 }
@@ -164,7 +164,7 @@ module "route_table_data" {
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
-  disable_bgp_route_propagation = true
+  bgp_route_propagation_enabled = false
   routes = [
   ]
 }
@@ -177,7 +177,7 @@ module "route_table_mgmt" {
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
-  disable_bgp_route_propagation = true
+  bgp_route_propagation_enabled = false
   routes = [
   ]
 }
@@ -190,7 +190,7 @@ module "route_table_svc" {
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
-  disable_bgp_route_propagation = true
+  bgp_route_propagation_enabled = false
   routes = [
   ]
 }
@@ -203,7 +203,7 @@ module "route_table_tools" {
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
-  disable_bgp_route_propagation = true
+  bgp_route_propagation_enabled = false
   routes = [
   ]
 }
@@ -216,7 +216,7 @@ module "route_table_vint" {
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
-  disable_bgp_route_propagation = true
+  bgp_route_propagation_enabled = false
   routes = [
   ]
 }

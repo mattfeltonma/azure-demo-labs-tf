@@ -1,12 +1,17 @@
-variable "disable_bgp_route_propagation" {
-  description = "Disable BGP route propagation for the route table"
+variable "bgp_route_propagation_enabled" {
+  description = "Enable BGP route propagation"
   type        = bool
-  default    = false
+  default    = true
 }
 
 variable "location" {
   description = "The name of the location to provision the resources to"
   type        = string
+}
+
+variable "location_code" {
+  description = "The location code to append to the resource name"
+  type = string
 }
 
 variable "purpose" {

@@ -1,6 +1,6 @@
 variable "address_space_vnet" {
   description = "The address space to assign to the virtual network"
-  type        = list(string)
+  type        = string
 }
 
 variable "dns_servers" {
@@ -22,6 +22,11 @@ variable "law_resource_id" {
 variable "location" {
   description = "The name of the location to provision the resources to"
   type        = string
+}
+
+variable "location_code" {
+  description = "The location code to append to the resource name"
+  type = string
 }
 
 variable "name_hub" {
@@ -71,37 +76,37 @@ variable "sub_id_shared" {
 
 variable "subnet_cidr_agw" {
   description = "The address space to assign to the subnet used for the Application Gateway"
-  type        = list(string)
+  type        = string
 }
 
 variable "subnet_cidr_apim" {
   description = "The address space to assign to the subnet used for the API Management instance"
-  type        = list(string)
+  type        = string
 }
 
 variable "subnet_cidr_app" {
   description = "The address space to assign to the subnet used for the application tier"
-  type        = list(string)
+  type        = string
 }
 
 variable "subnet_cidr_data" {
   description = "The address space to assign to the subnet used for the data tier"
-  type        = list(string)
+  type        = string
 }
 
 variable "subnet_cidr_mgmt" {
   description = "The address space to assign to the subnet used for management services"
-  type        = list(string)
+  type        = string
 }
 
 variable "subnet_cidr_svc" {
   description = "The address space to assign to the subnet used for services exposed by Private Endpoints"
-  type        = list(string)
+  type        = string
 }
 
 variable "subnet_cidr_vint" {
   description = "The address space to assign to the subnet used for virtual network integration"
-  type        = list(string)
+  type        = string
 }
 variable "tags" {
   description = "The tags to apply to the resource"

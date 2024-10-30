@@ -1,11 +1,10 @@
 locals {
-# Get first two characters of the location
-  location_short = substr(var.location, 0, 2)
-
-  # Configure standard naming convention for relevant resources
+ # Configure standard naming convention for relevant resources
   nsg_name = "law"
-
+  data_collection_rule_windows = "win"
+  data_collection_rule_linux = "lin"
 
   # Log Analytics Workspace SKU
   log_analytics_sku = "PerGB2018"
+
 }

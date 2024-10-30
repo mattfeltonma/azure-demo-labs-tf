@@ -1,5 +1,5 @@
 resource "azurerm_network_interface" "nic" {
-  name                = "${local.nic_name}${var.purpose}${local.location_short}${var.random_string}"
+  name                = "${local.nic_name}${var.purpose}${var.location_code}${var.random_string}"
   location            = var.location
   resource_group_name = var.resource_group_name
   ip_configuration {
@@ -20,12 +20,12 @@ resource "azurerm_network_interface" "nic" {
 }
 
 resource "azurerm_windows_virtual_machine" "vm" {
-  name                = "${local.vm_name}${var.purpose}${local.location_short}${var.random_string}"
+  name                = "${local.vm_name}${var.purpose}${var.location_code}${var.random_string}"
   location            = var.location
   resource_group_name = var.resource_group_name
 
-  admin_username                  = var.admin_username
-  admin_password                  = var.admin_password
+  admin_username = var.admin_username
+  admin_password = var.admin_password
 
   size = var.vm_size
   network_interface_ids = [
@@ -33,10 +33,10 @@ resource "azurerm_windows_virtual_machine" "vm" {
   ]
   zone = var.availability_zone
 
-  dynamic identity {
+  dynamic "identity" {
     for_each = var.identities != null ? [var.identities] : []
     content {
-      type = var.identities.type
+      type         = var.identities.type
       identity_ids = var.identities.identity_ids
     }
   }
@@ -49,7 +49,7 @@ resource "azurerm_windows_virtual_machine" "vm" {
   }
 
   os_disk {
-    name                 = "${local.os_disk_name}${local.vm_name}${var.purpose}${local.location_short}${var.random_string}"
+    name                 = "${local.os_disk_name}${local.vm_name}${var.purpose}${var.location_code}${var.random_string}"
     storage_account_type = var.disk_os_storage_account_type
     disk_size_gb         = var.disk_os_size_gb
     caching              = local.os_disk_caching
@@ -66,7 +66,7 @@ resource "azurerm_windows_virtual_machine" "vm" {
 }
 
 resource "azurerm_managed_disk" "data" {
-  name                 = "${local.data_disk_name}${local.vm_name}${var.purpose}${local.location_short}${var.random_string}"
+  name                 = "${local.data_disk_name}${local.vm_name}${var.purpose}${var.location_code}${var.random_string}"
   location             = var.location
   resource_group_name  = var.resource_group_name
   storage_account_type = var.disk_data_storage_account_type
@@ -127,11 +127,11 @@ resource "azurerm_virtual_machine_extension" "custom-script-extension" {
   publisher            = "Microsoft.Compute"
   type                 = "CustomScriptExtension"
   type_handler_version = local.custom_script_extension_version
-  protected_settings   = <<SETTINGS
-  {
-    "commandToExecute": "powershell -ExecutionPolicy Unrestricted -EncodedCommand ${textencodebase64(file("${path.module}/../../../scripts/bootstrap-windows-tool.ps1"), "UTF-16LE")}" 
-  }
-  SETTINGS
+  protected_settings = jsonencode(
+    {
+      "commandToExecute" : "powershell -ExecutionPolicy Unrestricted -EncodedCommand ${textencodebase64(file("${path.module}/../../../scripts/bootstrap-windows-tool.ps1"), "UTF-16LE")}"
+    }
+  )
 
   # Adjust timeout because provisioning script can take a fair amount of time
   timeouts {

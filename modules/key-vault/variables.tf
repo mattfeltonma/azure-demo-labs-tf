@@ -49,6 +49,11 @@ variable "location" {
   type        = string
 }
 
+variable "location_code" {
+  description = "The location code to append to the resource name"
+  type = string
+}
+
 variable "purge_protection" {
   description = "Specify whether purge protection is enabled for the Key Vault"
   type        = bool

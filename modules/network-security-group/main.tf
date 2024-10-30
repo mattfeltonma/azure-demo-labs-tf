@@ -1,6 +1,6 @@
 # Create the network security group
 resource "azurerm_network_security_group" "nsg" {
-  name                = "${local.nsg_name}${var.purpose}${local.location_short}${var.random_string}"
+  name                = "${local.nsg_name}${var.purpose}${var.location_code}${var.random_string}"
   location            = var.location
   resource_group_name = var.resource_group_name
   tags                = var.tags

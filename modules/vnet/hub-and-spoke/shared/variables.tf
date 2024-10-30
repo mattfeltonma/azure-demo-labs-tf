@@ -10,7 +10,7 @@ variable "address_space_onpremises" {
 
 variable "address_space_vnet" {
   description = "The address space assigned to virtual network"
-  type        = list(string)
+  type        = string
 }
 
 variable "admin_username" {
@@ -65,6 +65,11 @@ variable "location" {
   type        = string
 }
 
+variable "location_code" {
+  description = "The location code to append to the resource name"
+  type = string
+}
+
 variable "name_hub" {
   description = "The name of the hub virtual network"
   type        = string
@@ -107,27 +112,27 @@ variable "storage_account_id_flow_logs" {
 
 variable "subnet_cidr_bastion" {
   description = "The address space to assign to the Azure Bastion subnet"
-  type        = list(string)
+  type        = string
 }
 
 variable "subnet_cidr_dnsin" {
   description = "The address space to assign to the subnet delegated to the inbound DNS resolver"
-  type        = list(string)
+  type        = string
 }
 
 variable "subnet_cidr_dnsout" {
   description = "The address space to assign to the subnet delegated to the outbound DNS resolver"
-  type        = list(string)
+  type        = string
 }
 
 variable "subnet_cidr_pe" {
   description = "The address space to assign to the private endpoint subnet"
-  type        = list(string)
+  type        = string
 }
 
 variable "subnet_cidr_tools" {
   description = "The address space to assign to the tools subnet"
-  type        = list(string)
+  type        = string
 }
 
 variable "tags" {

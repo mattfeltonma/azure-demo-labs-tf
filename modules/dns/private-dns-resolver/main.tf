@@ -1,5 +1,5 @@
 resource "azurerm_private_dns_resolver" "resolver" {
-  name                = "${local.private_resolver_name}${local.location_short}${var.random_string}"
+  name                = "${local.private_resolver_name}${var.location_code}${var.random_string}"
   resource_group_name = var.resource_group_name
   location            = var.location
   virtual_network_id  = var.vnet_id
@@ -14,7 +14,7 @@ resource "azurerm_private_dns_resolver" "resolver" {
 }
 
 resource "azurerm_private_dns_resolver_inbound_endpoint" "inend" {
-  name                    = "${local.private_resolver_inbound_endpoint}${local.location_short}${var.random_string}"
+  name                    = "${local.private_resolver_inbound_endpoint}${var.location_code}${var.random_string}"
   private_dns_resolver_id = azurerm_private_dns_resolver.resolver.id
   location                = var.location
   ip_configurations {
@@ -32,7 +32,7 @@ resource "azurerm_private_dns_resolver_inbound_endpoint" "inend" {
 }
 
 resource "azurerm_private_dns_resolver_outbound_endpoint" "outend" {
-  name                    = "${local.private_resolver_outbound_endpoint}${local.location_short}${var.random_string}"
+  name                    = "${local.private_resolver_outbound_endpoint}${var.location_code}${var.random_string}"
   private_dns_resolver_id = azurerm_private_dns_resolver.resolver.id
   location                = var.location
   subnet_id               = var.subnet_id_outbound

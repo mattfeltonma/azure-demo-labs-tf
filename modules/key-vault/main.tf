@@ -1,5 +1,5 @@
 resource "azurerm_key_vault" "kv" {
-  name                = "${local.kv_name}${var.purpose}${local.location_short}${var.random_string}"
+  name                = "${local.kv_name}${var.purpose}${var.location_code}${var.random_string}"
   location            = var.location
   resource_group_name = var.resource_group_name
 

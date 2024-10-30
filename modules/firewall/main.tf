@@ -1,7 +1,7 @@
 ## Create IP Groups
 ##
 resource "azurerm_ip_group" "on_prem" {
-  name                = "${local.ip_group_name}onprem${local.location_short}${var.random_string}"
+  name                = "${local.ip_group_name}onprem${var.location_code}${var.random_string}"
   location            = var.location
   resource_group_name = var.resource_group_name
 
@@ -20,7 +20,7 @@ resource "azurerm_ip_group" "on_prem" {
 }
 
 resource "azurerm_ip_group" "azure" {
-  name                = "${local.ip_group_name}azure${local.location_short}${var.random_string}"
+  name                = "${local.ip_group_name}azure${var.location_code}${var.random_string}"
   location            = var.location
   resource_group_name = var.resource_group_name
 
@@ -39,7 +39,7 @@ resource "azurerm_ip_group" "azure" {
 }
 
 resource "azurerm_ip_group" "rfc1918" {
-  name                = "${local.ip_group_name}rfc1918${local.location_short}${var.random_string}"
+  name                = "${local.ip_group_name}rfc1918${var.location_code}${var.random_string}"
   location            = var.location
   resource_group_name = var.resource_group_name
 
@@ -60,7 +60,7 @@ resource "azurerm_ip_group" "rfc1918" {
 }
 
 resource "azurerm_ip_group" "apim" {
-  name                = "${local.ip_group_name}apim${local.location_short}${var.random_string}"
+  name                = "${local.ip_group_name}apim${var.location_code}${var.random_string}"
   location            = var.location
   resource_group_name = var.resource_group_name
 
@@ -80,7 +80,7 @@ resource "azurerm_ip_group" "apim" {
 ## Create Azure Firewall Policy and Rule Collections
 ##
 resource "azurerm_firewall_policy" "firewall_policy" {
-  name                = "${local.fw_policy_name}${local.fw_purpose}${local.location_short}${var.random_string}"
+  name                = "${local.fw_policy_name}${local.fw_purpose}${var.location_code}${var.random_string}"
   resource_group_name = var.resource_group_name
   location            = var.location
 
@@ -588,6 +588,7 @@ module "public-ip" {
   random_string       = var.random_string
   purpose             = "afw"
   location            = var.location
+  location_code       = var.location_code
   resource_group_name = var.resource_group_name
 
   law_resource_id = var.law_resource_id
@@ -602,7 +603,7 @@ resource "azurerm_firewall" "firewall" {
     module.public-ip
   ]
 
-  name                = "${local.fw_name}${local.fw_purpose}${local.location_short}${var.random_string}"
+  name                = "${local.fw_name}${local.fw_purpose}${var.location_code}${var.random_string}"
   location            = var.location
   resource_group_name = var.resource_group_name
   tags                = var.tags

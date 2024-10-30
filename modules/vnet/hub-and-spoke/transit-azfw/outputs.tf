@@ -23,9 +23,19 @@ output "route_table_id_gateway" {
   description = "The id of the route table associated with the GatewaySubnet"
 }
 
+output "route_table_id_azfw" {
+  value       = module.route_table_azfw.id
+  description = "The id of the route table associated with the AzureFirewallSubnett"
+}
+
 output "route_table_name_gateway" {
   value       = module.route_table_gateway.name
   description = "The name of the route table associated with the GatewaySubnet"
+}
+
+output "route_table_name_azfw" {
+  value       = module.route_table_azfw.name
+  description = "The name of the route table associated with the AzureFirewallSubnet"
 }
 
 output "subnet_id_gateway" {

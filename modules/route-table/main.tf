@@ -1,9 +1,9 @@
 resource "azurerm_route_table" "route_table" {
-  name                = "${local.route_table_name}${var.purpose}${local.location_short}${var.random_string}"
+  name                = "${local.route_table_name}${var.purpose}${var.location_code}${var.random_string}"
   location            = var.location
   resource_group_name = var.resource_group_name
 
-  disable_bgp_route_propagation = var.disable_bgp_route_propagation
+  bgp_route_propagation_enabled = var.bgp_route_propagation_enabled
 
   dynamic "route" { 
     for_each = var.routes

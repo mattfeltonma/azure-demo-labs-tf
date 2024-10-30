@@ -3,9 +3,20 @@ variable "address_space_onpremises" {
   type        = string
 }
 
-variable "address_space_azure" {
-  description = "The address space used on-premises"
+variable "address_space_cloud" {
+  description = "The address space in the cloud"
   type        = string
+}
+
+variable "address_space_azure_primary_region" {
+  description = "The address space in the primary Azure region"
+  type        = string
+}
+
+variable "address_space_azure_secondary_region" {
+  description = "The address space in the secondary Azure region"
+  type        = string
+  default = null
 }
 
 variable "admin_username" {
@@ -22,6 +33,24 @@ variable "admin_password" {
 variable "key_vault_admin" {
   description = "The object id of the user or service principal to assign the Key Vault Administrator role to"
   type        = string
+
+}
+
+variable "location_primary" {
+  description = "The primary location to deploy resources to"
+  type        = string
+}
+
+variable "location_secondary" {
+  description = "The secondary location to deploy resources to"
+  type        = string
+  default = null
+}
+
+variable "multi_region" {
+  description = "The flag to enable multi-region deployment"
+  type        = bool
+  default     = false
 }
 
 variable "network_watcher_name" {
@@ -36,10 +65,6 @@ variable "network_watcher_resource_group_name" {
   default     = "NetworkWatcherRG"
 }
 
-variable "location" {
-  description = "The region to deploy resources to"
-  type        = string
-}
 
 variable "private_dns_namespaces" {
   description = "The private DNS zones to create and link to the shared services virtual network"
@@ -67,27 +92,16 @@ variable "private_dns_namespaces" {
 variable "sku_tools_size" {
   description = "The SKU to use for the tools virtual machine"
   type        = string
-  default     = "Standard_D2lds_v5"
+  default     = "Standard_D2s_v3"
 }
 
 variable "sku_tools_os" {
   description = "The operating system to use for the tools virtual machine"
   type        = string
-  default     = "2019-Datacenter"
+  default     = "2019-datacenter-gensecond"
 }
 
 variable "tags" {
   description = "The tags to apply to the resources"
   type        = map(string)
-}
-
-variable "trusted_ip_address" {
-  description = "The public IP address of a trusted endpoint that will be allowed to RDP and SSH to the tools servers"
-  type        = string
-}
-
-variable "vnet_cidr_wl" {
-  description = "The virtual network CIDR block for the workload virtual network"
-  type        = string
-  default     = "10.52.0.0/16"
 }

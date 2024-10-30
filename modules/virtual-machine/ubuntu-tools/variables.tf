@@ -58,14 +58,14 @@ variable "image_reference" {
     })
 }
 
-variable "name" {
-  description = "The name of the virtual machine"
-  type        = string
-}
-
 variable "location" {
   description = "The location to deploy the virtual machine"
   type        = string
+}
+
+variable "location_code" {
+  description = "The location code to append to the resource name"
+  type = string
 }
 
 variable "private_ip_address" {
@@ -84,6 +84,17 @@ variable "public_ip_address_id" {
   description = "The ID of the public IP address to associate with the virtual machine"
   type        = string
   default     = null
+}
+
+variable "purpose" {
+  description = "The three character purpose code for the virtual machine"
+  type        = string
+
+}
+
+variable "random_string" {
+  description = "The random string to append to the virtual machine name"
+  type        = string
 }
 
 variable "resource_group_name" {
