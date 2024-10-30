@@ -61,15 +61,23 @@ Other features include:
 
 * tags - These are the tags you want associated to the resource. By default two tags will be added in addition to the tags you specify. A createdBy tag will be added to each resource with the objectId of the user who created the resources. A createdTime tag will be added as well indicating the time the resource was created. Example: {environment = "lab", product = "test"}
 
-* location - This is the Azure region you want to deploy the resources to. Example: "eastus"
+* location_primary - This is the primary Azure region you want to deploy the resources to. Example: "eastus"
 
-* address_space_azure - This is the address space you want to use for the lab. The lab requires a large enough block to provide for at least three /16s. Example: "10.0.0.0/8"
+* location_secondary - This is the secondary Azure region you want to deploy the resources to when deploying using the multiple region option. Example: "eastus"
+
+* address_space_azure_primary_region - This is the address space you want to assign to the primary region. It must be /20 or more.
+
+* address_space_azure_secondary_region - This is the address space you want to assign to the secondary region when deploying using the multiple region option. This must be /20 or more.
+
+* address_space_cloud - This is the address space you want to use for the lab. The lab requires a large enough block to provide for at least three /16s. Example: "10.0.0.0/8"
 
 * address_space_onpremises - This is the address space for any VPN sites connected to the VPN Gateway. Example: "192.168.0.0/16"
 
 * admin_username - This is the username configured for the administrator account on the virtual machine. This is stored in the central Key Vault for reference.
 
 * admin_password - This is the password configured for the administrator account on the virtual machine. This is stored in the central Key Vault for reference.
+
+* multi_region - Set this to true to deploy to both the primary and secondary regions.
 
 3. Run the following command to initialize Terraform.
 `terraform init`
