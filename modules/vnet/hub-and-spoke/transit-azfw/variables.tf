@@ -15,7 +15,7 @@ variable "address_space_onpremises" {
 
 variable "address_space_vnet" {
   description = "The address space to assign to the virtual network"
-  type        = list(string)
+  type        = string
 }
 
 variable "dns_servers" {
@@ -27,6 +27,11 @@ variable "dns_servers" {
 variable "location" {
   description = "The name of the location to provision the resources to"
   type        = string
+}
+
+variable "location_code" {
+  description = "The location code to append to the resource name"
+  type = string
 }
 
 variable "network_watcher_resource_id" {
@@ -55,13 +60,13 @@ variable "subnet_cidr_dns" {
 }
 
 variable "subnet_cidr_firewall" {
-  description = "The address space to assign to the subnet delegated to the inbound DNS resolver"
-  type        = list(string)
+  description = "The address space to assign to the subnet used by Azure Firewall"
+  type        = string
 }
 
 variable "subnet_cidr_gateway" {
-  description = "The address space to assign to the Azure Bastion subnet"
-  type        = list(string)
+  description = "The address space to assign to the Virtual Network Gateway subnet"
+  type        = string
 }
 
 variable "tags" {

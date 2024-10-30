@@ -63,6 +63,11 @@ variable "location" {
   type        = string
 }
 
+variable "location_code" {
+  description = "The location code to append to the resource name"
+  type = string
+}
+
 variable "private_ip_address" {
   description = "The private IP address of the virtual machine"
   type        = string
@@ -90,8 +95,8 @@ variable "purpose" {
 variable "random_string" {
   description = "The random string to append to the virtual machine name"
   type        = string
-
 }
+
 variable "resource_group_name" {
   description = "The name of the resource group to deploy the virtual machine"
   type        = string

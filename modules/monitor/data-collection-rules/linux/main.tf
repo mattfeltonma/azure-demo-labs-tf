@@ -1,10 +1,10 @@
 resource "azurerm_monitor_data_collection_rule" "rule" {
-  name                        = var.name
+  name                        = "${local.data_collection_rule_prefix}${var.purpose}${var.random_string}"
   resource_group_name         = var.resource_group_name
   location                    = var.location
-  data_collection_endpoint_id = var.data_collection_endpoint_id
   kind = "Linux"
   description                 = "This data collection rule captures common Linux logs and metrics"
+  data_collection_endpoint_id = var.data_collection_endpoint_id
 
   destinations {
     log_analytics {

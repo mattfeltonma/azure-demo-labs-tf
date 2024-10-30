@@ -3,8 +3,18 @@ variable "location" {
     type        = string
 }
 
-variable "name" {
-    description = "The name of the data collection endpoint"
+variable "location_code" {
+    description = "The location code"
+    type        = string
+}
+
+variable "purpose" {
+    description = "The purpose of the data collection endpoint"
+    type        = string
+}
+
+variable "random_string" {
+    description = "The random string to append to the resource"
     type        = string
 }
 

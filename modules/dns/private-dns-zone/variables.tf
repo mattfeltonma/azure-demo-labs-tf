@@ -1,5 +1,5 @@
 variable "name" {
-  description = "The DNS namespace the zone will host]"
+  description = "The DNS namespace the zone will host"
   type        = string
 }
 

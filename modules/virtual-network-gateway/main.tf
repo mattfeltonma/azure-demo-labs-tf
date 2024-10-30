@@ -1,36 +1,47 @@
 module "public-ip" {
 
+  count               = 2
   source              = "../../modules/public-ip"
   random_string       = var.random_string
   location            = var.location
+    location_code       = var.location_code
   resource_group_name = var.resource_group_name
 
-  purpose             = "vpn"
+  purpose         = "vpn${count.index + 1}"
   law_resource_id = var.law_resource_id
 
-  tags                = var.tags
+  tags = var.tags
 
 }
 
+
+
 resource "azurerm_virtual_network_gateway" "vgw" {
-  depends_on = [ 
+  depends_on = [
     module.public-ip
   ]
 
-  name                = "${local.vng_name}${var.purpose}${local.location_short}${var.random_string}"
+  name                = "${local.vng_name}${var.purpose}${var.location_code}${var.random_string}"
   location            = var.location
   resource_group_name = var.resource_group_name
   type                = local.vng_type
   vpn_type            = local.vpn_type
   sku                 = var.sku
 
-  active_active = false
-  enable_bgp = true
+  active_active = true
+  enable_bgp    = true
 
   ip_configuration {
     name                          = "ipconfig-1"
     private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = module.public-ip.id
+    public_ip_address_id          = module.public-ip[0].id
+    subnet_id                     = var.subnet_id_gateway
+  }
+
+  ip_configuration {
+    name                          = "ipconfig-2"
+    private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = module.public-ip[1].id
     subnet_id                     = var.subnet_id_gateway
   }
 
@@ -39,7 +50,7 @@ resource "azurerm_virtual_network_gateway" "vgw" {
     peering_addresses {
       ip_configuration_name = "ipconfig-1"
     }
-  
+
   }
   tags = var.tags
 

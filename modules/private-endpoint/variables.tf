@@ -3,6 +3,11 @@ variable "location" {
   type        = string
 }
 
+variable "location_code" {
+  description = "The location code to append to the resource name"
+  type = string
+}
+
 variable "private_dns_zone_ids" {
   description = "The ids of the private dns zones to link to the private endpoint for lifecycle management of the DNS records"
   type        = list(string)

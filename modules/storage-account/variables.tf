@@ -1,3 +1,9 @@
+variable "key_based_authentication" {
+  description = "Storage Account should support key-based authentication"
+  type = bool
+  default = false
+}
+
 variable "law_resource_id" {
   description = "The resource id of the Log Analytics Workspace"
   type = string
@@ -5,6 +11,11 @@ variable "law_resource_id" {
 
 variable "location" {
   description = "The name of the location to deploy the resources to"
+  type = string
+}
+
+variable "location_code" {
+  description = "The location code to append to the resource name"
   type = string
 }
 

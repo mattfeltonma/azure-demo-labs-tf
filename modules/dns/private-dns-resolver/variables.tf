@@ -3,6 +3,11 @@ variable "location" {
   type        = string
 }
 
+variable "location_code" {
+  description = "The location code to append to the resource name"
+  type = string
+}
+
 variable "random_string" {
   description = "The random string to append to the resource name"
   type        = string

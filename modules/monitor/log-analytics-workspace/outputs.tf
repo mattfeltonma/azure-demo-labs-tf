@@ -1,8 +1,3 @@
-output "dce_id" {
-  value       = module.data_collection_endpoint.id
-  description = "The resource id of the data collection endpoint"
-}
-
 output "dcr_id_windows" {
   value       = module.data_collection_rule_windows.id
   description = "The resource id of the Data Collection Rule for Windows"
@@ -11,6 +6,16 @@ output "dcr_id_windows" {
 output "dcr_id_linux" {
   value       = module.data_collection_rule_linux.id
   description = "The resource id of the Data Collection Rule for Linux"
+}
+
+output "dce_id_primary" {
+  value       = module.data_collection_endpoint_primary.id
+  description = "The resource id of the Data Collection Endpoint for the primary region"
+}
+
+output "dce_id_secondary" {
+  value       = try(module.data_collection_endpoint_secondary[0].id, null)
+  description = "The resource id of the Data Collection Endpoint for the secondary region"
 }
 
 output "name" {

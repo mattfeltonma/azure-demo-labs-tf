@@ -9,6 +9,11 @@ variable "location" {
   type        = string
 }
 
+variable "location_code" {
+  description = "The location code to append to the resource name"
+  type = string
+}
+
 variable "purpose" {
   description = "The three character purpose code to append to the resource name"
   type        = string

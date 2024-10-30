@@ -1,6 +1,6 @@
 variable "data_collection_endpoint_id" {
-  description = "The resource id of the Data Collection Endpoint to associate the data collection rule with"
-  type        = string
+    description = "The id of the data collection endpoint to associate the data collection rule with"
+    type        = string
 }
 
 variable "location" {
@@ -18,8 +18,13 @@ variable "law_resource_id" {
   type        = string
 }
 
-variable "name" {
-    description = "The name of the data collection endpoint"
+variable "purpose" {
+    description = "The purpose of the data collection rule"
+    type        = string
+}
+
+variable "random_string" {
+    description = "The random string to append to the resource"
     type        = string
 }
 

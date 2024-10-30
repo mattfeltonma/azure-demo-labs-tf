@@ -1,5 +1,5 @@
 resource "azurerm_network_interface" "nic" {
-  name                = var.name
+  name                = "${local.nic_name}${var.purpose}${var.location_code}${var.random_string}"
   location            = var.location
   resource_group_name = var.resource_group_name
   ip_configuration {
@@ -20,7 +20,7 @@ resource "azurerm_network_interface" "nic" {
 }
 
 resource "azurerm_linux_virtual_machine" "vm" {
-  name                = var.name
+  name                = "${local.vm_name}${var.purpose}${var.location_code}${var.random_string}"
   location            = var.location
   resource_group_name = var.resource_group_name
 
@@ -34,10 +34,10 @@ resource "azurerm_linux_virtual_machine" "vm" {
   ]
   zone = var.availability_zone
 
-  dynamic identity {
+  dynamic "identity" {
     for_each = var.identities != null ? [var.identities] : []
     content {
-      type = var.identities.type
+      type         = var.identities.type
       identity_ids = var.identities.identity_ids
     }
   }
@@ -50,7 +50,8 @@ resource "azurerm_linux_virtual_machine" "vm" {
   }
 
   os_disk {
-    name                 = "${local.os_disk_name}${var.name}"
+    name = "${local.os_disk_name}${local.vm_name}${var.purpose}${var.location_code}${var.random_string}"
+
     storage_account_type = var.disk_os_storage_account_type
     disk_size_gb         = var.disk_os_size_gb
     caching              = local.os_disk_caching
@@ -67,7 +68,7 @@ resource "azurerm_linux_virtual_machine" "vm" {
 }
 
 resource "azurerm_managed_disk" "data" {
-  name                 = "${local.data_disk_name}${var.name}"
+  name                 = "${local.data_disk_name}${local.vm_name}${var.purpose}${var.location_code}${var.random_string}"
   location             = var.location
   resource_group_name  = var.resource_group_name
   storage_account_type = var.disk_data_storage_account_type
@@ -93,7 +94,6 @@ resource "azurerm_virtual_machine_data_disk_attachment" "data-attach" {
 
 resource "azurerm_virtual_machine_extension" "custom-script-extension" {
   depends_on = [
-    azurerm_virtual_machine_extension.ama,
     azurerm_linux_virtual_machine.vm
   ]
 
@@ -103,12 +103,13 @@ resource "azurerm_virtual_machine_extension" "custom-script-extension" {
   publisher            = "Microsoft.Azure.Extensions"
   type                 = "CustomScript"
   type_handler_version = local.custom_script_extension_version
-  protected_settings   = <<SETTINGS
-  {
-    "commandToExecute": "/bin/bash bootstrap.sh "
-    "fileUris": ["https://raw.githubusercontent.com/mattfeltonma/azure-vm-bootstrap-scripts/main/bootstrap-ubuntu-tool.sh"]
-  }
-  SETTINGS
+  settings = jsonencode({
+    commandToExecute = <<-EOT
+      /bin/bash -c "echo '${replace(base64encode(file("${path.module}/../../../scripts/bootstrap-ubuntu-tools.sh")), "'", "'\\''")}' | base64 -d > /tmp/bootstrap-ubuntu-tools.sh && \
+      chmod +x /tmp/bootstrap-ubuntu-nva.sh && \
+      /bin/bash /tmp/bootstrap-ubuntu-tools.sh"
+    EOT
+  })
 
   tags = var.tags
 

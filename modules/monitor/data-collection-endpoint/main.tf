@@ -1,6 +1,6 @@
 resource "azurerm_monitor_data_collection_endpoint" "endpoint" {
 
-  name                = "dce${var.name}"
+  name                = "${local.data_collection_endpoint_prefix}${var.purpose}${var.location_code}${var.random_string}"
   resource_group_name = var.resource_group_name
   location            = var.location
 

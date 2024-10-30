@@ -4,9 +4,6 @@ locals {
 
   private_endpoint_network_policies = "Enabled"
 
-  # Get first two characters of the location
-  location_short = substr(var.location, 0, 2)
-
   # Configure standard naming convention for relevant resources
   vnet_name      = "vnet"
   flow_logs_name = "fl"

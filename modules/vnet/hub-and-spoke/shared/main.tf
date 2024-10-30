@@ -1,12 +1,12 @@
-## Create virtual network
+## Create virtual network and subnets
 ##
 resource "azurerm_virtual_network" "vnet" {
-  name                = "${local.vnet_name}${local.vnet_purpose}${local.location_short}${var.random_string}"
+  name                = "${local.vnet_name}${local.vnet_purpose}${var.location_code}${var.random_string}"
   location            = var.location
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
-  address_space = var.address_space_vnet
+  address_space = [var.address_space_vnet]
   dns_servers   = var.dns_servers
 
   lifecycle {
@@ -37,7 +37,7 @@ resource "azurerm_subnet" "subnet_bastion" {
   name                              = local.subnet_name_bastion
   resource_group_name               = var.resource_group_name
   virtual_network_name              = azurerm_virtual_network.vnet.name
-  address_prefixes                  = var.subnet_cidr_bastion
+  address_prefixes                  = [var.subnet_cidr_bastion]
   private_endpoint_network_policies = local.private_endpoint_network_policies
 }
 
@@ -46,7 +46,7 @@ resource "azurerm_subnet" "subnet_dnsin" {
   name                              = local.subnet_name_dnsin
   resource_group_name               = var.resource_group_name
   virtual_network_name              = azurerm_virtual_network.vnet.name
-  address_prefixes                  = var.subnet_cidr_dnsin
+  address_prefixes                  = [var.subnet_cidr_dnsin]
   private_endpoint_network_policies = local.private_endpoint_network_policies
 
   ## Delegation must be added because redeployment will fail without it.
@@ -63,7 +63,7 @@ resource "azurerm_subnet" "subnet_dnsout" {
   name                              = local.subnet_name_dnsout
   resource_group_name               = var.resource_group_name
   virtual_network_name              = azurerm_virtual_network.vnet.name
-  address_prefixes                  = var.subnet_cidr_dnsout
+  address_prefixes                  = [var.subnet_cidr_dnsout]
   private_endpoint_network_policies = local.private_endpoint_network_policies
 
   ## Delegation must be added because redeployment will fail without it.
@@ -80,7 +80,7 @@ resource "azurerm_subnet" "subnet_pe" {
   name                              = local.subnet_name_pe
   resource_group_name               = var.resource_group_name
   virtual_network_name              = azurerm_virtual_network.vnet.name
-  address_prefixes                  = var.subnet_cidr_pe
+  address_prefixes                  = [var.subnet_cidr_pe]
   private_endpoint_network_policies = local.private_endpoint_network_policies
 }
 
@@ -89,14 +89,14 @@ resource "azurerm_subnet" "subnet_tools" {
   name                              = local.subnet_name_tools
   resource_group_name               = var.resource_group_name
   virtual_network_name              = azurerm_virtual_network.vnet.name
-  address_prefixes                  = var.subnet_cidr_tools
+  address_prefixes                  = [var.subnet_cidr_tools]
   private_endpoint_network_policies = local.private_endpoint_network_policies
 }
 
 ## Peer the virtual network with the hub virtual network
 ##
 resource "azurerm_virtual_network_peering" "vnet_peering-to-hub" {
-  name                         = "peer-${local.vnet_name}${local.vnet_purpose}${local.location_short}${var.random_string}-to-hub"
+  name                         = "peer-${local.vnet_name}${local.vnet_purpose}${var.location_code}${var.random_string}-to-hub"
   resource_group_name          = var.resource_group_name
   virtual_network_name         = azurerm_virtual_network.vnet.name
   remote_virtual_network_id    = var.vnet_id_hub
@@ -106,7 +106,7 @@ resource "azurerm_virtual_network_peering" "vnet_peering-to-hub" {
 }
 
 resource "azurerm_virtual_network_peering" "vnet_peering" {
-  name                         = "peer-hub-to-${local.vnet_name}${local.vnet_purpose}${local.location_short}${var.random_string}"
+  name                         = "peer-hub-to-${local.vnet_name}${local.vnet_purpose}${var.location_code}${var.random_string}"
   resource_group_name          = var.resource_group_name_hub
   virtual_network_name         = var.name_hub
   remote_virtual_network_id    = azurerm_virtual_network.vnet.id
@@ -122,10 +122,11 @@ module "route_table_dnsin" {
   purpose             = "din"
   random_string       = var.random_string
   location            = var.location
+  location_code       = var.location_code
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
-  disable_bgp_route_propagation = true
+  bgp_route_propagation_enabled = false
   routes = [
     {
       name                   = "udr-default"
@@ -141,10 +142,11 @@ module "route_table_dnsout" {
   purpose             = "dou"
   random_string       = var.random_string
   location            = var.location
+  location_code       = var.location_code
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
-  disable_bgp_route_propagation = true
+  bgp_route_propagation_enabled = false
   routes = [
     {
       name                   = "udr-default"
@@ -160,10 +162,11 @@ module "route_table_tools" {
   purpose             = "too"
   random_string       = var.random_string
   location            = var.location
+  location_code       = var.location_code
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
-  disable_bgp_route_propagation = true
+  bgp_route_propagation_enabled = false
   routes = [{
     name                   = "udr-default"
     address_prefix         = "0.0.0.0/0"
@@ -179,6 +182,7 @@ module "nsg_bastion" {
   purpose             = "bst"
   random_string       = var.random_string
   location            = var.location
+  location_code       = var.location_code
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
@@ -312,6 +316,7 @@ module "nsg_dnsin" {
   purpose             = "din"
   random_string       = var.random_string
   location            = var.location
+  location_code       = var.location_code
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
@@ -352,6 +357,7 @@ module "nsg_dnsout" {
   purpose             = "dou"
   random_string       = var.random_string
   location            = var.location
+  location_code       = var.location_code
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
@@ -365,6 +371,7 @@ module "nsg_pe" {
   purpose             = "pe"
   random_string       = var.random_string
   location            = var.location
+  location_code       = var.location_code
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
@@ -378,6 +385,7 @@ module "nsg_tools" {
   purpose             = "too"
   random_string       = var.random_string
   location            = var.location
+  location_code       = var.location_code
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
@@ -479,7 +487,7 @@ resource "azapi_resource" "vnet_flow_log" {
   ]
 
   type      = "Microsoft.Network/networkWatchers/flowLogs@2023-11-01"
-  name      = "${local.flow_logs_name}${local.vnet_purpose}${local.location_short}${var.random_string}"
+  name      = "${local.flow_logs_name}${local.vnet_purpose}${var.location_code}${var.random_string}"
   location  = var.location
   parent_id = var.network_watcher_resource_id
 
@@ -520,6 +528,7 @@ module "dns_resolver" {
   source              = "../../../dns/private-dns-resolver"
   random_string       = var.random_string
   location            = var.location
+  location_code       = var.location_code
   resource_group_name = var.resource_group_name
 
   vnet_id            = azurerm_virtual_network.vnet.id
@@ -540,6 +549,7 @@ module "bastion" {
   source              = "../../../bastion"
   random_string       = var.random_string
   location            = var.location
+  location_code       = var.location_code
   resource_group_name = var.resource_group_name
 
   subnet_id       = azurerm_subnet.subnet_bastion.id
@@ -559,6 +569,7 @@ module "windows_vm_tool" {
   purpose             = "too"
   random_string       = var.random_string
   location            = var.location
+  location_code       = var.location_code
   resource_group_name = var.resource_group_name
 
   admin_username = var.admin_username
@@ -576,18 +587,22 @@ module "windows_vm_tool" {
   tags = var.tags
 }
 
-resource "azurerm_monitor_data_collection_rule_association" "dcra_win_tools" {
+resource "azurerm_monitor_data_collection_rule_association" "dce_win_tools" {
   depends_on = [
     module.windows_vm_tool
+  ]
+  name                    = "configurationAccessEndpoint"
+  description             = "Data Collection Endpoint Association for Windows Tools VM"
+  data_collection_endpoint_id = var.dce_id
+  target_resource_id      = module.windows_vm_tool.id
+}
+
+resource "azurerm_monitor_data_collection_rule_association" "dcr_win_tools" {
+  depends_on = [
+    azurerm_monitor_data_collection_rule_association.dce_win_tools
   ]
   name                    = "${local.dcr_association}${module.windows_vm_tool.name}"
   description             = "Data Collection Rule Association for Windows Tools VM"
   data_collection_rule_id = var.dcr_id_windows
   target_resource_id      = module.windows_vm_tool.id
-}
-
-resource "azurerm_monitor_data_collection_rule_association" "dcea_win_tools" {
-  target_resource_id          = module.windows_vm_tool.id
-  data_collection_endpoint_id = var.dce_id
-  description                 = "Data Collection Endpoint Association for Windows Tools VM"
 }
