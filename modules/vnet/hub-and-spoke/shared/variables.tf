@@ -37,7 +37,13 @@ variable "dcr_id_windows" {
 variable "dns_servers" {
   description = "The DNS Servers to configure for the virtual network"
   type        = list(string)
-  default    = ["168.63.129.16"]
+  default     = ["168.63.129.16"]
+}
+
+variable "dns_proxy" {
+  description = "Whether a DNS proxy is being used"
+  type        = bool
+  default = false
 }
 
 variable "fw_private_ip" {
@@ -67,7 +73,7 @@ variable "location" {
 
 variable "location_code" {
   description = "The location code to append to the resource name"
-  type = string
+  type        = string
 }
 
 variable "name_hub" {

@@ -47,6 +47,16 @@ variable "disk_data_storage_account_type" {
   default     =  "StandardSSD_LRS"
 }
 
+variable "dce_id" {
+  description = "The resource id of the data collection endpoint to associate this machine to"
+  type        = string
+}
+
+variable "dcr_id" {
+  description = "The resource id of the data collection rule to associate this machine to"
+  type        = string
+}
+
 variable "disk_data_size_gb" {
   description = "The size of the data disk in GB"
   type        = number
@@ -153,6 +163,5 @@ variable "tags" {
 variable "vm_size" {
   description = "The size of the virtual machine"
   type        = string
-  default     = "Standard_DC1s_v3"
 }
 

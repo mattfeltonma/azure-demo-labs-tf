@@ -138,22 +138,29 @@ module "transit-vnet-pri" {
     module.storage-account-flow-logs-pri
   ]
 
-  source              = "../../modules/vnet/hub-and-spoke/transit-azfw"
+  source              = "../../modules/vnet/hub-and-spoke/transit-nva"
   random_string       = random_string.unique.result
   location            = var.location_primary
   location_code       = local.location_code_primary
   resource_group_name = azurerm_resource_group.rgtran-pri.name
 
-  address_space_vnet   = local.vnet_cidr_tr_pri
-  subnet_cidr_gateway  = cidrsubnet(local.vnet_cidr_tr_pri, 3, 0)
-  subnet_cidr_firewall = cidrsubnet(local.vnet_cidr_tr_pri, 3, 1)
-  subnet_cidr_dns      = cidrsubnet(local.vnet_cidr_tr_pri, 3, 2)
+  address_space_vnet           = local.vnet_cidr_tr_pri
+  subnet_cidr_firewall_public  = cidrsubnet(local.vnet_cidr_tr_pri, 3, 0)
+  subnet_cidr_firewall_private = cidrsubnet(local.vnet_cidr_tr_pri, 3, 1)
+  subnet_cidr_gateway          = cidrsubnet(local.vnet_cidr_tr_pri, 3, 2)
 
   address_space_onpremises = var.address_space_onpremises
-  address_space_apim       = cidrsubnet(local.vnet_cidr_wl_pri, 3, 4)
   address_space_azure      = var.address_space_cloud
   vnet_cidr_ss             = local.vnet_cidr_ss_pri
   vnet_cidr_wl             = local.vnet_cidr_wl_pri
+
+  admin_username = var.admin_username
+  admin_password = var.admin_password
+
+  vm_size_nva  = var.sku_vm_size
+  dce_id       = module.law.dce_id_primary
+  dcr_id_linux = module.law.dcr_id_linux
+  asn_router = local.asn_router_r1
 
   network_watcher_resource_id          = "/subscriptions/${data.azurerm_subscription.current.subscription_id}/resourceGroups/${var.network_watcher_resource_group_name}/providers/Microsoft.Network/networkWatchers/${var.network_watcher_name}${var.location_primary}"
   storage_account_id_flow_logs         = module.storage-account-flow-logs-pri.id
@@ -173,22 +180,29 @@ module "transit-vnet-sec" {
     module.storage-account-flow-logs-sec
   ]
 
-  source              = "../../modules/vnet/hub-and-spoke/transit-azfw"
+  source              = "../../modules/vnet/hub-and-spoke/transit-nva"
   random_string       = random_string.unique.result
   location            = var.location_secondary
   location_code       = local.location_code_secondary
   resource_group_name = azurerm_resource_group.rgtran-sec[0].name
 
-  address_space_vnet   = local.vnet_cidr_tr_sec
-  subnet_cidr_gateway  = cidrsubnet(local.vnet_cidr_tr_sec, 3, 0)
-  subnet_cidr_firewall = cidrsubnet(local.vnet_cidr_tr_sec, 3, 1)
-  subnet_cidr_dns      = cidrsubnet(local.vnet_cidr_tr_sec, 3, 2)
+  address_space_vnet           = local.vnet_cidr_tr_sec
+  subnet_cidr_firewall_public  = cidrsubnet(local.vnet_cidr_tr_sec, 3, 0)
+  subnet_cidr_firewall_private = cidrsubnet(local.vnet_cidr_tr_sec, 3, 1)
+  subnet_cidr_gateway          = cidrsubnet(local.vnet_cidr_tr_sec, 3, 2)
 
   address_space_onpremises = var.address_space_onpremises
-  address_space_apim       = cidrsubnet(local.vnet_cidr_wl_sec, 3, 4)
   address_space_azure      = var.address_space_cloud
   vnet_cidr_ss             = local.vnet_cidr_ss_sec
   vnet_cidr_wl             = local.vnet_cidr_wl_sec
+
+  admin_username = var.admin_username
+  admin_password = var.admin_password
+
+  vm_size_nva  = var.sku_vm_size
+  dce_id       = module.law.dce_id_secondary
+  dcr_id_linux = module.law.dcr_id_linux
+  asn_router = local.asn_router_r2
 
   network_watcher_resource_id          = "/subscriptions/${data.azurerm_subscription.current.subscription_id}/resourceGroups/${var.network_watcher_resource_group_name}/providers/Microsoft.Network/networkWatchers/${var.network_watcher_name}${var.location_secondary}"
   storage_account_id_flow_logs         = module.storage-account-flow-logs-sec[0].id
@@ -219,10 +233,8 @@ module "shared-vnet-pri" {
   subnet_cidr_dnsout  = cidrsubnet(local.vnet_cidr_ss_pri, 3, 2)
   subnet_cidr_tools   = cidrsubnet(local.vnet_cidr_ss_pri, 3, 3)
   subnet_cidr_pe      = cidrsubnet(local.vnet_cidr_ss_pri, 3, 4)
-  fw_private_ip       = module.transit-vnet-pri.azfw_private_ip
-  dns_servers = [
-    module.transit-vnet-pri.azfw_private_ip
-  ]
+  fw_private_ip       = module.transit-vnet-pri.firewall_ilb_ip
+
   name_hub                 = module.transit-vnet-pri.name
   resource_group_name_hub  = azurerm_resource_group.rgtran-pri.name
   vnet_id_hub              = module.transit-vnet-pri.id
@@ -241,7 +253,7 @@ module "shared-vnet-pri" {
   traffic_analytics_workspace_id       = module.law.id
   traffic_analytics_workspace_location = module.law.location
 
-  sku_tools_size = var.sku_tools_size
+  sku_tools_size = var.sku_vm_size
   sku_tools_os   = var.sku_tools_os
   admin_username = var.admin_username
   admin_password = var.admin_password
@@ -269,10 +281,8 @@ module "shared-vnet-sec" {
   subnet_cidr_dnsout  = cidrsubnet(local.vnet_cidr_ss_sec, 3, 2)
   subnet_cidr_tools   = cidrsubnet(local.vnet_cidr_ss_sec, 3, 3)
   subnet_cidr_pe      = cidrsubnet(local.vnet_cidr_ss_sec, 3, 4)
-  fw_private_ip       = module.transit-vnet-sec[0].azfw_private_ip
-  dns_servers = [
-    module.transit-vnet-sec[0].azfw_private_ip
-  ]
+  fw_private_ip       = module.transit-vnet-sec[0].firewall_ilb_ip
+
   name_hub                 = module.transit-vnet-sec[0].name
   resource_group_name_hub  = azurerm_resource_group.rgtran-sec[0].name
   vnet_id_hub              = module.transit-vnet-sec[0].id
@@ -291,7 +301,7 @@ module "shared-vnet-sec" {
   traffic_analytics_workspace_id       = module.law.id
   traffic_analytics_workspace_location = module.law.location
 
-  sku_tools_size = var.sku_tools_size
+  sku_tools_size = var.sku_vm_size
   sku_tools_os   = var.sku_tools_os
   admin_username = var.admin_username
   admin_password = var.admin_password
@@ -348,7 +358,7 @@ module "private_dns_zones" {
     for zone in local.private_dns_namespaces_with_regional_zones :
     zone => zone
   }
-
+ 
   name    = each.value
   vnet_id = module.shared-vnet-pri.id
 
@@ -358,6 +368,10 @@ module "private_dns_zones" {
 ## If the second region is being deployed, create virtual network links to the existing Private DNS Zones
 ##
 resource "azurerm_private_dns_zone_virtual_network_link" "link-second-region" {
+  depends_on = [ 
+    module.private_dns_zones 
+]
+
   for_each = var.multi_region == true ? {
     for zone in local.private_dns_namespaces_with_regional_zones :
     zone => zone
@@ -378,48 +392,15 @@ resource "azurerm_private_dns_zone_virtual_network_link" "link-second-region" {
   }
 }
 
-
-## Modify the DNS Server settings of the Azure Firewall Policy
-##
-resource "null_resource" "update-policy-dns-pri" {
-  depends_on = [
-    module.private_dns_zones
-  ]
-  triggers = {
-    always_run = timestamp()
-  }
-  provisioner "local-exec" {
-    command = <<EOF
-    az network firewall policy update --ids ${module.transit-vnet-pri.policy_id} --dns-servers ${module.shared-vnet-pri.private_resolver_inbound_endpoint_ip}
-    EOF
-  }
-}
-
-resource "null_resource" "update-policy-dns-sec" {
-  count = var.multi_region == true ? 1 : 0
-
-  depends_on = [
-    module.private_dns_zones
-  ]
-  triggers = {
-    always_run = timestamp()
-  }
-  provisioner "local-exec" {
-    command = <<EOF
-    az network firewall policy update --ids ${module.transit-vnet-sec[0].policy_id} --dns-servers ${module.shared-vnet-sec[0].private_resolver_inbound_endpoint_ip}
-    EOF
-  }
-}
-
 ## Modify DNS Server Settings on transit virtual network
 ##
 resource "azurerm_virtual_network_dns_servers" "dns-servers-pri" {
   depends_on = [
-    null_resource.update-policy-dns-pri
+    module.private_dns_zones
   ]
   virtual_network_id = module.transit-vnet-pri.id
   dns_servers = [
-    module.transit-vnet-pri.azfw_private_ip
+    module.shared-vnet-pri.private_resolver_inbound_endpoint_ip
   ]
 }
 
@@ -427,11 +408,11 @@ resource "azurerm_virtual_network_dns_servers" "dns-servers-sec" {
   count = var.multi_region == true ? 1 : 0
 
   depends_on = [
-    null_resource.update-policy-dns-sec
+    azurerm_private_dns_zone_virtual_network_link.link-second-region
   ]
   virtual_network_id = module.transit-vnet-sec[0].id
   dns_servers = [
-    module.transit-vnet-sec[0].azfw_private_ip
+    module.shared-vnet-sec[0].private_resolver_inbound_endpoint_ip
   ]
 }
 
@@ -444,7 +425,7 @@ module "workload-vnet-pri" {
     azurerm_virtual_network_dns_servers.dns-servers-pri
   ]
 
-  source              = "../../modules/vnet/hub-and-spoke/workload-standard"
+  source              = "../../modules/vnet/hub-and-spoke/workload-simple"
   random_string       = random_string.unique.result
   location            = var.location_primary
   location_code       = local.location_code_primary
@@ -452,25 +433,23 @@ module "workload-vnet-pri" {
 
   address_space_vnet = local.vnet_cidr_wl_pri
   subnet_cidr_app    = cidrsubnet(local.vnet_cidr_wl_pri, 3, 0)
-  subnet_cidr_data   = cidrsubnet(local.vnet_cidr_wl_pri, 3, 1)
-  subnet_cidr_svc    = cidrsubnet(local.vnet_cidr_wl_pri, 3, 2)
-  subnet_cidr_agw    = cidrsubnet(local.vnet_cidr_wl_pri, 3, 3)
-  subnet_cidr_apim   = cidrsubnet(local.vnet_cidr_wl_pri, 3, 4)
-  subnet_cidr_mgmt   = cidrsubnet(local.vnet_cidr_wl_pri, 3, 5)
-  subnet_cidr_vint   = cidrsubnet(local.vnet_cidr_wl_pri, 3, 6)
-
-  fw_private_ip = module.transit-vnet-pri.azfw_private_ip
+  subnet_cidr_svc    = cidrsubnet(local.vnet_cidr_wl_pri, 3, 1)
+  fw_private_ip      = module.transit-vnet-pri.firewall_ilb_ip
   dns_servers = [
-    module.transit-vnet-pri.azfw_private_ip
+    module.shared-vnet-pri.private_resolver_inbound_endpoint_ip
   ]
   name_hub                   = module.transit-vnet-pri.name
   resource_group_name_hub    = azurerm_resource_group.rgtran-pri.name
   vnet_id_hub                = module.transit-vnet-pri.id
-  name_shared                = module.shared-vnet-pri.name
   resource_group_name_shared = azurerm_resource_group.rgshared-pri.name
-  sub_id_shared              = data.azurerm_subscription.current.subscription_id
 
   law_resource_id = module.law.id
+  dce_id = module.law.dce_id_primary
+  dcr_id_linux = module.law.dcr_id_linux
+
+  admin_username = var.admin_username
+  admin_password = var.admin_password
+  vm_size_web    = var.sku_vm_size
 
   storage_account_id_flow_logs         = module.storage-account-flow-logs-pri.id
   network_watcher_resource_id          = "/subscriptions/${data.azurerm_subscription.current.subscription_id}/resourceGroups/${var.network_watcher_resource_group_name}/providers/Microsoft.Network/networkWatchers/${var.network_watcher_name}${var.location_primary}"
@@ -490,7 +469,7 @@ module "workload-vnet-sec" {
     azurerm_virtual_network_dns_servers.dns-servers-sec
   ]
 
-  source              = "../../modules/vnet/hub-and-spoke/workload-standard"
+  source              = "../../modules/vnet/hub-and-spoke/workload-simple"
   random_string       = random_string.unique.result
   location            = var.location_secondary
   location_code       = local.location_code_secondary
@@ -498,25 +477,24 @@ module "workload-vnet-sec" {
 
   address_space_vnet = local.vnet_cidr_wl_sec
   subnet_cidr_app    = cidrsubnet(local.vnet_cidr_wl_sec, 3, 0)
-  subnet_cidr_data   = cidrsubnet(local.vnet_cidr_wl_sec, 3, 1)
-  subnet_cidr_svc    = cidrsubnet(local.vnet_cidr_wl_sec, 3, 2)
-  subnet_cidr_agw    = cidrsubnet(local.vnet_cidr_wl_sec, 3, 3)
-  subnet_cidr_apim   = cidrsubnet(local.vnet_cidr_wl_sec, 3, 4)
-  subnet_cidr_mgmt   = cidrsubnet(local.vnet_cidr_wl_sec, 3, 5)
-  subnet_cidr_vint   = cidrsubnet(local.vnet_cidr_wl_sec, 3, 6)
+  subnet_cidr_svc    = cidrsubnet(local.vnet_cidr_wl_sec, 3, 1)
 
-  fw_private_ip = module.transit-vnet-sec[0].azfw_private_ip
+  fw_private_ip = module.transit-vnet-sec[0].firewall_ilb_ip
   dns_servers = [
-    module.transit-vnet-sec[0].azfw_private_ip
+    module.shared-vnet-sec[0].private_resolver_inbound_endpoint_ip
   ]
   name_hub                   = module.transit-vnet-sec[0].name
   resource_group_name_hub    = azurerm_resource_group.rgtran-sec[0].name
   vnet_id_hub                = module.transit-vnet-sec[0].id
-  name_shared                = azurerm_resource_group.rgshared-pri.name
   resource_group_name_shared = azurerm_resource_group.rgshared-pri.name
-  sub_id_shared              = data.azurerm_subscription.current.subscription_id
 
   law_resource_id = module.law.id
+  dce_id = module.law.dce_id_secondary
+  dcr_id_linux = module.law.dcr_id_linux
+
+  admin_username = var.admin_username
+  admin_password = var.admin_password
+  vm_size_web    = var.sku_vm_size
 
   storage_account_id_flow_logs         = module.storage-account-flow-logs-sec[0].id
   network_watcher_resource_id          = "/subscriptions/${data.azurerm_subscription.current.subscription_id}/resourceGroups/${var.network_watcher_resource_group_name}/providers/Microsoft.Network/networkWatchers/${var.network_watcher_name}${var.location_secondary}"
@@ -573,10 +551,10 @@ resource "azurerm_route" "routes-primary" {
 
   name                   = "${local.route_prefix}${each.key}${local.location_code_primary}"
   resource_group_name    = azurerm_resource_group.rgtran-pri.name
-  route_table_name       = module.transit-vnet-pri.route_table_name_azfw
+  route_table_name       = module.transit-vnet-pri.route_table_name_firewall_private
   address_prefix         = each.value
   next_hop_type          = "VirtualAppliance"
-  next_hop_in_ip_address = module.transit-vnet-sec[0].azfw_private_ip
+  next_hop_in_ip_address = module.transit-vnet-sec[0].firewall_ilb_ip
 }
 
 resource "azurerm_route" "routes-secondary" {
@@ -588,8 +566,8 @@ resource "azurerm_route" "routes-secondary" {
 
   name                   = "${local.route_prefix}${each.key}${local.location_code_secondary}"
   resource_group_name    = azurerm_resource_group.rgtran-sec[0].name
-  route_table_name       = module.transit-vnet-sec[0].route_table_name_azfw
+  route_table_name       = module.transit-vnet-sec[0].route_table_name_firewall_private
   address_prefix         = each.value
   next_hop_type          = "VirtualAppliance"
-  next_hop_in_ip_address = module.transit-vnet-pri.azfw_private_ip
+  next_hop_in_ip_address = module.transit-vnet-pri.firewall_ilb_ip
 }

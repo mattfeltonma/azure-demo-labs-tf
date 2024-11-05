@@ -246,20 +246,6 @@ module "route_table_mgmt" {
   ]
 }
 
-module "route_table_svc" {
-  source              = "../../../route-table"
-  purpose             = "svc"
-  random_string       = var.random_string
-  location            = var.location
-  location_code       = var.location_code
-  resource_group_name = var.resource_group_name
-  tags                = var.tags
-
-  bgp_route_propagation_enabled = false
-  routes = [
-  ]
-}
-
 module "route_table_vint" {
   source              = "../../../route-table"
   purpose             = "vint"
@@ -704,19 +690,6 @@ resource "azurerm_subnet_route_table_association" "route_table_association_mgmt"
 
   subnet_id      = azurerm_subnet.subnet_mgmt.id
   route_table_id = module.route_table_mgmt.id
-}
-
-resource "azurerm_subnet_route_table_association" "route_table_association_svc" {
-  depends_on = [
-    azurerm_subnet.subnet_svc,
-    azurerm_subnet_network_security_group_association.subnet_nsg_association_svc,
-    module.route_table_svc,
-    azurerm_virtual_network_peering.vnet_peering_to_hub,
-    azurerm_virtual_network_peering.vnet_peering_to_spoke
-  ]
-
-  subnet_id      = azurerm_subnet.subnet_svc.id
-  route_table_id = module.route_table_svc.id
 }
 
 resource "azurerm_subnet_route_table_association" "route_table_association_vint" {

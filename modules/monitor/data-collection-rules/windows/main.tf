@@ -21,7 +21,7 @@ resource "azurerm_monitor_data_collection_rule" "rule" {
   data_sources {
     windows_event_log {
       name    = "Windows-Event-Logs"
-      streams = ["Microsoft-WindowsEvent"]
+      streams = ["Microsoft-Event"]
       x_path_queries = [
         "Application!*[System[(Level=1 or Level=2 or Level=3 or Level=4 or Level=0 or Level=5)]]",
         "Security!*[System[(band(Keywords,13510798882111488))]]",
@@ -29,6 +29,10 @@ resource "azurerm_monitor_data_collection_rule" "rule" {
         "Directory Services!*[System[(Level=1 or Level=2 or Level=3 or Level=4 or Level=5)]]"
       ]
     }
+  }
+
+  identity {
+    type = "SystemAssigned"
   }
 
   tags = var.tags

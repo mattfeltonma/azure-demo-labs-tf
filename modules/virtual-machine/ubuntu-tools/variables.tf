@@ -15,6 +15,16 @@ variable "availability_zone" {
     default     = null
 }
 
+variable "dce_id" {
+  description = "The resource id of the data collection endpoint to associate this machine to"
+  type        = string
+}
+
+variable "dcr_id" {
+  description = "The resource id of the data collection rule to associate this machine to"
+  type        = string
+}
+
 variable "disk_data_storage_account_type" {
   description = "The storage account type for the data disk"
   type        = string
@@ -58,6 +68,11 @@ variable "image_reference" {
     })
 }
 
+variable "law_resource_id" {
+  description = "The resource id of the log analytics workspace"
+  type        = string
+}
+
 variable "location" {
   description = "The location to deploy the virtual machine"
   type        = string
@@ -68,7 +83,7 @@ variable "location_code" {
   type = string
 }
 
-variable "private_ip_address" {
+variable "nic_private_ip_address" {
   description = "The private IP address of the virtual machine"
   type        = string
   default   = null

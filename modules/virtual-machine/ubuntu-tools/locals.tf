@@ -16,4 +16,5 @@ locals {
   # Extension variables
   custom_script_extension_version = "2.1"
   automatic_extension_ugprade = true
+  monitor_agent_handler_version = "1.21"
 }

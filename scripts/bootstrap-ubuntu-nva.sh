@@ -1,4 +1,4 @@
-#!/bin/basg
+#!/bin/bash
 
 # Initialize variables with default values (if needed)
 hostname=""
@@ -116,7 +116,7 @@ apt-get -o DPkg::Lock::Timeout=60 update
 ##
 apt-get -o DPkg::Lock::Timeout=30 install frr frr-pythontools -y
 
-## Check whether there is a zebra log file which would indicate the frr service is already configured
+## Check whether there is an frr log file which would indicate the frr service is already configured
 ## and running
 ls -l /var/log/frr.log > /dev/null
 if [ $? -eq 2 ]
@@ -163,7 +163,10 @@ then
 
     ! Configure the interface frr should listen on
     vrf vrflan
-     exit-vrf
+      rd $router_asn:1
+      route-target import $router_asn:1
+      route-target export $router_asn:1
+    exit-vrf
 
     ! Configure frr to use the vrf route table
     table 10
