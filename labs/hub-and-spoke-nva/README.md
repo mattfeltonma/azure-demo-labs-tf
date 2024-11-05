@@ -1,13 +1,7 @@
-# Azure Hub and Spoke Lab with Azure Firewall
+# Azure Hub and Spoke Lab with Linux NVA
 
 ## Updates
-* 10/28/2024
-  * Extensive cleanup and modified IP ranges to be more reasonable
-  * Added support for deploying to multiple regions
-* 7/22/2024
-  * Added subnets, route tables, and network security groups to allow for deployment of Application Gateway or API Management deployed in internal mode
-  * Added required rules for internal API Management to Azure Firewall rules
-* 6/07/2024
+* 11/05/2024
   * Initial release
 
 ## Overview
@@ -16,14 +10,20 @@ The Terraform code in this repository provisions an enterprise-like lab environm
 ## Architecture
 The environment is deployed across three resource groups. One resource group is dedicated to network components (transit), another to shared infrastructure services (shared services), and the last to workload components.
 
-It uses a [hub and spoke architecture](https://docs.microsoft.com/en-us/azure/architecture/reference-architectures/hybrid-networking/hub-spoke?tabs=cli) where all north, south, east, and west traffic is routed through an Azure Firewall deployed in the transit virtual network. Shared services like DNS, provided by Azure Private DNS Resolver, are deployed in a spoke attached to the hub. Another spoke is attached to the hub configured with a variety of subnets to fit most workload purposes.
+It uses a [hub and spoke architecture](https://docs.microsoft.com/en-us/azure/architecture/reference-architectures/hybrid-networking/hub-spoke?tabs=cli) where all north, south, east, and west traffic is routed through a set of Linux machines running iptables, VRF kernal support, and FRR for optional BGP. Shared services like DNS, provided by Azure Private DNS Resolver, are deployed in a spoke attached to the hub. A second spoke called a workload spoke is attached to the hub with an Ubuntu server running an Apache website for testing.
 
-![lab image single region](../../assets/lab-hub-spoke-azfw-sr.svg)
+A sample config file for frr can be found [here](../../sample-configs/frr.conf). When defining the routes to advertise, ensure these routes have been added to the vrf's route table. This can be done using the syntax below.
+
+`ip route add table 10 YOUR_CIDR via INTERNAL_NIC_GATEWAY`
+
+The lab that is deployed is pictured below.
+
+![lab image single region](../../assets/lab-hub-spoke-nva-sr.svg)
 *Single Region*
 
 It can optionally be deployed to multiple regions by setting the Terraform parameter multi_region to true. It will then an additional three resource groups in the second region and will re-use existing global Private DNS Zones for internal DNS resolution.
 
-![lab image multiple region](../../assets/lab-hub-spoke-azfw-mr.svg)
+![lab image multiple region](../../assets/lab-hub-spoke-nva-mr.svg)
 *Multi-Region*
 
 Other features include:
@@ -38,6 +38,7 @@ Other features include:
 8) Managed identity and Azure Key Vault provisioned for use with application workloads
 9) Centralized Azure Key Vault which stores username and password configured on the virtual machine
 10) Azure Monitor Data Collection Rules for Linux and Windows Virtual Machines
+11) FRR for BGP
 
 ## Prerequisites
 1. You must hold at least the Owner role within each Azure subscription you configure the template to deploy resources to or you must have sufficient delegated permissions to create role assignments.

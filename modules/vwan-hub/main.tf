@@ -3,9 +3,13 @@ resource "azurerm_virtual_hub" "hub" {
   resource_group_name = var.resource_group_name
   location            = var.location
 
-  virtual_wan_id         = var.vwan_id
+  virtual_wan_id                         = var.vwan_id
+  sku                                    = local.sku
+  virtual_router_auto_scale_min_capacity = local.virtual_router_auto_scale_min_capacity
+
   address_prefix         = var.address_space
   hub_routing_preference = var.routing_preference
+
 
   tags = var.tags
 

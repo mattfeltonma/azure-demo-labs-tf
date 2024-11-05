@@ -2,6 +2,7 @@ resource "azurerm_network_interface" "nic" {
   name                = "${local.nic_name}${var.purpose}${var.location_code}${var.random_string}"
   location            = var.location
   resource_group_name = var.resource_group_name
+  accelerated_networking_enabled = true
   ip_configuration {
     name                          = local.ip_configuration_name
     subnet_id                     = var.subnet_id
@@ -33,12 +34,9 @@ resource "azurerm_windows_virtual_machine" "vm" {
   ]
   zone = var.availability_zone
 
-  dynamic "identity" {
-    for_each = var.identities != null ? [var.identities] : []
-    content {
-      type         = var.identities.type
-      identity_ids = var.identities.identity_ids
-    }
+  identity {
+    type = var.identities != null ? var.identities.type : "SystemAssigned"
+    identity_ids = var.identities != null ? var.identities.identity_ids : null
   }
 
   source_image_reference {
@@ -98,12 +96,12 @@ resource "azurerm_virtual_machine_extension" "ama" {
 
   virtual_machine_id = azurerm_windows_virtual_machine.vm.id
 
-  name                 = "AzureMonitorWindowsAgent"
-  publisher            = "Microsoft.Azure.Monitor"
-  type                 = "AzureMonitorWindowsAgent"
-  type_handler_version = local.monitor_agent_handler_version
-
-  automatic_upgrade_enabled = local.automatic_extension_ugprade
+  name                       = "AzureMonitorWindowsAgent"
+  publisher                  = "Microsoft.Azure.Monitor"
+  type                       = "AzureMonitorWindowsAgent"
+  type_handler_version       = local.monitor_agent_handler_version
+  auto_upgrade_minor_version = true
+  automatic_upgrade_enabled  = local.automatic_extension_ugprade
 
   tags = var.tags
 

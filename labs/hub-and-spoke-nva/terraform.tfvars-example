@@ -1,0 +1,14 @@
+multi_region = false
+address_space_azure_primary_region = "10.0.0.0/20"
+address_space_cloud = "10.0.0.0/8"
+address_space_onpremises = "192.168.0.0/16"
+admin_username = "someusername"
+admin_password = "somepassword"
+key_vault_admin = "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+location_primary = "canadacentral"
+tags = {environment = "lab", product = "ars"}
+
+# These variables are only required if multi_region is set to true
+
+#location_secondary = "centralus"
+#address_space_azure_secondary_region = "10.0.16.0/20"

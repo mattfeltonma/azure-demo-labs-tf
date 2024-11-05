@@ -55,27 +55,58 @@ locals {
     "westus2"            = "wus2",
     "westus3"            = "wus3"
   }
+  location_code_primary = lookup(local.region_abbreviations, var.location_primary, var.location_primary)
+  location_code_secondary = var.multi_region == true ? try(
+    lookup(local.region_abbreviations, var.location_secondary, var.location_secondary),
+    null
+  ) : null
 
-  location_short = lookup(local.region_abbreviations, var.location, var.location)
+  # Naming conventions
+  route_prefix = "udr"
+
+  # Fixed variables
+  law_purpose = "cnt"
+  asn_router_r1 = 65001
+  asn_router_r2 = 65002
 
   # Create the virtual network cidr ranges
-  vnet_cidr_tr = cidrsubnet(var.address_space_azure_region, 2, 0)
-  vnet_cidr_ss = cidrsubnet(var.address_space_azure_region, 2, 1)
-  vnet_cidr_wl = cidrsubnet(var.address_space_azure_region, 2, 2)
+  vnet_cidr_tr_pri = cidrsubnet(var.address_space_azure_primary_region, 2, 0)
+  vnet_cidr_ss_pri = cidrsubnet(var.address_space_azure_primary_region, 2, 1)
+  vnet_cidr_wl_pri = cidrsubnet(var.address_space_azure_primary_region, 2, 2)
+  primary_region_vnet_cidrs = {
+    "ss" = local.vnet_cidr_ss_pri,
+    "wl" = local.vnet_cidr_wl_pri
+  }
+
+  vnet_cidr_tr_sec = var.multi_region == true ? try(cidrsubnet(var.address_space_azure_secondary_region, 2, 0), null) : null
+  vnet_cidr_ss_sec = var.multi_region == true ? try(cidrsubnet(var.address_space_azure_secondary_region, 2, 1), null) : null
+  vnet_cidr_wl_sec = var.multi_region == true ? try(cidrsubnet(var.address_space_azure_secondary_region, 2, 2), null) : null
+  secondary_region_vnet_cidrs = var.multi_region == true ? {
+    "ss" = local.vnet_cidr_ss_sec,
+    "wl" = local.vnet_cidr_wl_sec
+  } : {}
+
+  # Regionally specific Private DNS Zones
+  # Construct regional Private DNS Zones
+  aks_private_dns_namespace_primary   = "privatelink.${var.location_primary}.azmk8s.io"
+  aks_private_dns_namespace_secondary = var.multi_region == true ? ["privatelink.${var.location_secondary}.azmk8s.io"] : []
+
+  # Add regional zones to a list 
+  regional_private_dns_namespaces = concat(
+    [
+      local.aks_private_dns_namespace_primary
+    ],
+    local.aks_private_dns_namespace_secondary
+  )
+
+  private_dns_namespaces_with_regional_zones = concat(var.private_dns_namespaces, local.regional_private_dns_namespaces)
 
   # Add required tags and merge them with the provided tags
   required_tags = {
-    created_date  = timestamp()
-    created_by    = data.azurerm_client_config.identity_config.object_id
+    created_date = timestamp()
+    created_by   = data.azurerm_client_config.identity_config.object_id
   }
-
-  # Regionally specific Private DNS Zones
-  aks_private_dns_namespace = "privatelink.${var.location}.azmk8s.io"
-  regional_private_dns_namespaces = [
-    local.aks_private_dns_namespace
-  ]
-  private_dns_namespaces_with_regional_zones = concat(var.private_dns_namespaces, local.regional_private_dns_namespaces)
-
+  
   tags = merge(
     var.tags,
     local.required_tags

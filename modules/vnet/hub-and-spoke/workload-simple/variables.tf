@@ -1,16 +1,6 @@
-variable "address_space_azure" {
-  description = "The address space used in the Azure environment"
-  type        = string
-}
-
-variable "address_space_onpremises" {
-  description = "The address space used on-premises"
-  type        = string
-}
-
 variable "address_space_vnet" {
   description = "The address space to assign to the virtual network"
-  type        =  string
+  type        = string
 }
 
 variable "admin_username" {
@@ -20,12 +10,6 @@ variable "admin_username" {
 
 variable "admin_password" {
   description = "The password to assign to the virtual machine"
-  type        = string
-  sensitive   = true
-}
-
-variable "asn_router" {
-  description = "The ASN to assign to the NVAs"
   type        = string
   sensitive   = true
 }
@@ -46,6 +30,16 @@ variable "dns_servers" {
   default    = ["168.63.129.16"]
 }
 
+variable "fw_private_ip" {
+  description = "The private IP address of the Azure Firewall"
+  type        = string
+}
+
+variable "law_resource_id" {
+  description = "The resource id of the Log Analytics Workspace to send diagnostic logs to"
+  type        = string
+}
+
 variable "location" {
   description = "The name of the location to provision the resources to"
   type        = string
@@ -54,6 +48,11 @@ variable "location" {
 variable "location_code" {
   description = "The location code to append to the resource name"
   type = string
+}
+
+variable "name_hub" {
+  description = "The name of the hub virtual network"
+  type        = string
 }
 
 variable "network_watcher_resource_id" {
@@ -71,23 +70,28 @@ variable "resource_group_name" {
   type        = string
 }
 
+variable "resource_group_name_hub" {
+  description = "The name of the resource group the hub virtual network is deployed to"
+  type        = string
+}
+
+variable "resource_group_name_shared" {
+  description = "The name of the resource group the shared services virtual network is deployed to"
+  type        = string
+}
+
 variable "storage_account_id_flow_logs" {
   description = "The resource id of the storage account to send virtual network flow logs to"
   type        = string
 }
 
-variable "subnet_cidr_firewall_private" {
-  description = "The address space to assign to the subnet used for the private NIC for the NVA"
+variable "subnet_cidr_app" {
+  description = "The address space to assign to the subnet used for the application tier"
   type        = string
 }
 
-variable "subnet_cidr_firewall_public" {
-  description = "The address space to assign to the subnet used for the public NIC for the NVA"
-  type        = string
-}
-
-variable "subnet_cidr_gateway" {
-  description = "The address space to assign to the Virtual Network Gateway subnet"
+variable "subnet_cidr_svc" {
+  description = "The address space to assign to the subnet used for services exposed by Private Endpoints"
   type        = string
 }
 
@@ -111,17 +115,14 @@ variable "traffic_analytics_workspace_id" {
   type        = string
 }
 
-variable "vm_size_nva" {
-  description = "The size of the virtual machine to deploy"
+variable "vm_size_web" {
+  description = "The size of the virtual machine to deploy as the web server"
   type        = string
 }
 
-variable "vnet_cidr_ss" {
-  description = "The address space to assign to the shared services virtual network"
+variable "vnet_id_hub" {
+  description = "The resource id of the hub virtual network"
   type        = string
 }
 
-variable "vnet_cidr_wl" {
-  description = "The address space to assign to the workload virtual network"
-  type        = string
-}
+

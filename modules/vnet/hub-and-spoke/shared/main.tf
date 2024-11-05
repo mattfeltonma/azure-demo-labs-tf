@@ -538,6 +538,23 @@ module "dns_resolver" {
   tags = var.tags
 }
 
+## If a DNS Proxy is not used then set the virtual network to use the inbound endpoint in the vnet DHCP settings
+##
+resource "azurerm_virtual_network_dns_servers" "vnet_dns" {
+
+  count = var.dns_proxy == true ? 1 : 0
+
+  depends_on = [
+    module.dns_resolver,
+    azurerm_monitor_data_collection_rule_association.dcr_win_tools
+  ]
+
+  virtual_network_id = azurerm_virtual_network.vnet.id
+  dns_servers = [
+    module.dns_resolver.inbound_endpoint_ip
+  ]
+}
+
 ## Create Azure Bastion instance
 ##
 module "bastion" {
@@ -558,7 +575,7 @@ module "bastion" {
   tags = var.tags
 }
 
-## Deploy Windows Tool server
+## Deploy a Windows or Linux virtual machine for tools and associate it to the DCE and DCR
 ##
 module "windows_vm_tool" {
   depends_on = [
@@ -591,10 +608,10 @@ resource "azurerm_monitor_data_collection_rule_association" "dce_win_tools" {
   depends_on = [
     module.windows_vm_tool
   ]
-  name                    = "configurationAccessEndpoint"
-  description             = "Data Collection Endpoint Association for Windows Tools VM"
+  name                        = "configurationAccessEndpoint"
+  description                 = "Data Collection Endpoint Association for Windows Tools VM"
   data_collection_endpoint_id = var.dce_id
-  target_resource_id      = module.windows_vm_tool.id
+  target_resource_id          = module.windows_vm_tool.id
 }
 
 resource "azurerm_monitor_data_collection_rule_association" "dcr_win_tools" {

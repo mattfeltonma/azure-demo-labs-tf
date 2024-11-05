@@ -20,11 +20,19 @@ resource "azurerm_monitor_data_collection_rule" "rule" {
  
   data_sources {
     syslog {
-      facility_names = ["*"]
-      log_levels     = ["Warning"]
-      name           = "Linux-Logs"
+      facility_names = ["syslog"]
+      log_levels     = [
+        "Alert",
+        "Critical",
+        "Emergency"
+     ]
+      name           = "syslogBase"
       streams        = ["Microsoft-Syslog"]
     }
+  }
+
+  identity {
+    type = "SystemAssigned"
   }
 
   tags = var.tags

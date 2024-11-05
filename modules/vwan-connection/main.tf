@@ -5,12 +5,15 @@ resource "azurerm_virtual_hub_connection" "conn" {
   remote_virtual_network_id = var.vnet_id
 
   internet_security_enabled = local.propagate_default_route
+
   routing {
     associated_route_table_id = var.associated_route_table
+
     propagated_route_table {
       labels          = var.propagate_route_labels
       route_table_ids = var.propagate_route_tables
     }
+    
     inbound_route_map_id  = var.inbound_route_map_id
     outbound_route_map_id = var.outbound_route_map_id
 

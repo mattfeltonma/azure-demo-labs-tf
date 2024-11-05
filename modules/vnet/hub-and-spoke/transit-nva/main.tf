@@ -166,7 +166,8 @@ resource "azurerm_subnet" "subnet_firewall_private" {
 resource "azurerm_subnet_network_security_group_association" "nsg_association_firewall_public" {
   depends_on = [
     module.nsg_firewall_public,
-    azurerm_subnet.subnet_firewall_public
+    azurerm_subnet.subnet_gateway,
+    azurerm_subnet.subnet_firewall_private
   ]
 
   subnet_id                 = azurerm_subnet.subnet_firewall_public.id
@@ -176,7 +177,8 @@ resource "azurerm_subnet_network_security_group_association" "nsg_association_fi
 resource "azurerm_subnet_network_security_group_association" "nsg_association_firewall_private" {
   depends_on = [
     module.nsg_firewall_private,
-    azurerm_subnet.subnet_firewall_private
+    azurerm_subnet.subnet_firewall_private,
+    azurerm_subnet_network_security_group_association.nsg_association_firewall_public
   ]
 
   subnet_id                 = azurerm_subnet.subnet_firewall_private.id
@@ -186,6 +188,10 @@ resource "azurerm_subnet_network_security_group_association" "nsg_association_fi
 ## Create a virtual network gateway
 ##
 module "gateway" {
+  depends_on = [
+    azurerm_subnet.subnet_gateway,
+    azurerm_subnet_network_security_group_association.nsg_association_firewall_private
+]
   source              = "../../../virtual-network-gateway"
   random_string       = var.random_string
   location            = var.location
@@ -201,9 +207,12 @@ module "gateway" {
 
 ## Create the Azure Load Balancers used to sit in front of the NVAs
 ##
-
 module "elb" {
-  depends_on = [azurerm_subnet.subnet_firewall_public]
+  depends_on = [
+    azurerm_subnet.subnet_firewall_public,
+    azurerm_subnet_network_security_group_association.nsg_association_firewall_public,
+    module.gateway
+  ]
 
   source              = "../../../load-balancer/nva-external"
   random_string       = var.random_string
@@ -217,7 +226,11 @@ module "elb" {
 }
 
 module "ilb" {
-  depends_on = [azurerm_subnet.subnet_firewall_private]
+  depends_on = [
+    azurerm_subnet.subnet_firewall_private,
+    azurerm_subnet_network_security_group_association.nsg_association_firewall_public,
+    module.elb
+  ] 
 
   source              = "../../../load-balancer/nva-internal"
   random_string       = var.random_string
@@ -322,7 +335,7 @@ module "route_table_firewall_public" {
     },
     {
       name           = "udr-on-prem"
-      address_prefix = var.address_space_onprem
+      address_prefix = var.address_space_onpremises
       next_hop_type  = "None"
     },
     {
@@ -338,7 +351,8 @@ module "route_table_firewall_public" {
 resource "azurerm_subnet_route_table_association" "route_table_association_gateway" {
   depends_on = [
     azurerm_subnet.subnet_gateway,
-    module.route_table_gateway
+    module.route_table_gateway,
+    module.gateway
   ]
 
   subnet_id      = azurerm_subnet.subnet_gateway.id
@@ -349,7 +363,8 @@ resource "azurerm_subnet_route_table_association" "route_table_association_publi
   depends_on = [
     azurerm_subnet_route_table_association.route_table_association_gateway,
     azurerm_subnet.subnet_firewall_public,
-    module.route_table_firewall_public
+    module.route_table_firewall_public,
+    module.elb
   ]
 
   subnet_id      = azurerm_subnet.subnet_firewall_public.id
@@ -360,7 +375,8 @@ resource "azurerm_subnet_route_table_association" "route_table_association_priva
   depends_on = [
     azurerm_subnet_route_table_association.route_table_association_public,
     azurerm_subnet.subnet_firewall_private,
-    module.route_table_firewall_private
+    module.route_table_firewall_private,
+    module.ilb
   ]
 
   subnet_id      = azurerm_subnet.subnet_firewall_private.id
@@ -373,7 +389,8 @@ module "nva" {
   depends_on = [
     module.elb,
     module.ilb,
-    azurerm_subnet_route_table_association.route_table_association_private
+    azurerm_subnet_route_table_association.route_table_association_private,
+    azurerm_subnet_route_table_association.route_table_association_public
   ]
 
   source              = "../../../virtual-machine/ubuntu-nva"
@@ -388,18 +405,21 @@ module "nva" {
   admin_username = var.admin_username
   admin_password = var.admin_password
 
+  vm_size = var.vm_size_nva
+
   image_reference = {
-    publisher = "canonical"
-    offer     = "ubuntu-24_04-lts"
-    sku       = "server"
-    version   = "latest"
+    publisher = local.image_preference_publisher
+    offer     = local.image_preference_offer
+    sku       = local.image_preference_sku
+    version   = local.image_preference_version
   }
 
   address_space_cloud_region = var.address_space_azure
-  address_space_on_prem      = var.address_space_onprem
+  address_space_on_prem      = var.address_space_onpremises
 
   nic_private_private_ip_address = cidrhost(var.subnet_cidr_firewall_private, (count.index + 20))
   nic_public_private_ip_address  = cidrhost(var.subnet_cidr_firewall_public, (count.index + 20))
+  asn_router = var.asn_router
 
   subnet_id_private = azurerm_subnet.subnet_firewall_private.id
   subnet_id_public  = azurerm_subnet.subnet_firewall_public.id
@@ -410,6 +430,9 @@ module "nva" {
   be_address_pool_pub_id  = module.elb.backend_pool_id
 
   law_resource_id = var.traffic_analytics_workspace_id
+  dce_id = var.dce_id
+  dcr_id = var.dcr_id_linux
 
   tags = var.tags
 }
+

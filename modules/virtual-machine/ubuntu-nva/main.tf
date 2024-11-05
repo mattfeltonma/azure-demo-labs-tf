@@ -23,6 +23,7 @@ resource "azurerm_network_interface" "public-nic" {
   name                  = "${local.nic_name_ext}${var.purpose}${var.location_code}${var.random_string}"
   location              = var.location
   resource_group_name   = var.resource_group_name
+  accelerated_networking_enabled = true
   ip_forwarding_enabled = true
   ip_configuration {
     name                          = local.ip_configuration_name
@@ -55,6 +56,7 @@ resource "azurerm_network_interface" "private-nic" {
   name                  = "${local.nic_name_int}${var.purpose}${var.location_code}${var.random_string}"
   location              = var.location
   resource_group_name   = var.resource_group_name
+  accelerated_networking_enabled = true
   ip_forwarding_enabled = true
   ip_configuration {
     name                          = local.ip_configuration_name
@@ -98,12 +100,9 @@ resource "azurerm_linux_virtual_machine" "vm" {
   ]
   zone = var.availability_zone
 
-  dynamic "identity" {
-    for_each = var.identities != null ? [var.identities] : []
-    content {
-      type         = var.identities.type
-      identity_ids = var.identities.identity_ids
-    }
+  identity {
+    type = var.identities != null ? var.identities.type : "SystemAssigned"
+    identity_ids = var.identities != null ? var.identities.identity_ids : null
   }
 
   source_image_reference {
@@ -178,6 +177,53 @@ resource "azurerm_virtual_machine_extension" "custom-script-extension" {
       --private_nic_gateway_ip '${var.ip_inner_gateway}'"
     EOT
   })
+
+  tags = var.tags
+
+  lifecycle {
+    ignore_changes = [
+      tags["created_date"],
+      tags["created_by"]
+    ]
+  }
+}
+
+resource "azurerm_monitor_data_collection_rule_association" "dce_linux_tools" {
+  depends_on = [
+    azurerm_virtual_machine_extension.custom-script-extension
+  ]
+
+  name                        = "configurationAccessEndpoint"
+  description                 = "Data Collection Endpoint Association for Linux NVA VM"
+  data_collection_endpoint_id = var.dce_id
+  target_resource_id          = azurerm_linux_virtual_machine.vm.id
+}
+
+resource "azurerm_monitor_data_collection_rule_association" "dcr_linux_tools" {
+  depends_on = [
+    azurerm_monitor_data_collection_rule_association.dce_linux_tools
+  ]
+
+  name                    = "dcr${local.vm_name}${var.purpose}${var.location_code}${var.random_string}"
+  description             = "Data Collection Rule Association for Linux NVA VM"
+  data_collection_rule_id = var.dcr_id
+  target_resource_id      = azurerm_linux_virtual_machine.vm.id
+}
+
+resource "azurerm_virtual_machine_extension" "ama" {
+  depends_on = [
+    azurerm_monitor_data_collection_rule_association.dce_linux_tools,
+    azurerm_monitor_data_collection_rule_association.dcr_linux_tools
+  ]
+
+  virtual_machine_id = azurerm_linux_virtual_machine.vm.id
+
+  name                 = "AzureMonitorLinuxAgent"
+  publisher            = "Microsoft.Azure.Monitor"
+  type                 = "AzureMonitorLinuxAgent"
+  type_handler_version = local.monitor_agent_handler_version
+  auto_upgrade_minor_version = true
+  automatic_upgrade_enabled = local.automatic_extension_ugprade
 
   tags = var.tags
 
