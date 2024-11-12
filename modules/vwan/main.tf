@@ -1,5 +1,6 @@
 resource "azurerm_virtual_wan" "vwan" {
-    name = var.name
+    name = "${local.vwan_name}${var.location_code}${var.random_string}"
+
     resource_group_name = var.resource_group_name
     location = var.location
 

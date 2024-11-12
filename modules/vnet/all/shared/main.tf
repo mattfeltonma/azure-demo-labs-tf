@@ -93,9 +93,11 @@ resource "azurerm_subnet" "subnet_tools" {
   private_endpoint_network_policies = local.private_endpoint_network_policies
 }
 
-## Peer the virtual network with the hub virtual network
+## Peer the virtual network with the hub virtual network if hub and spoke
 ##
 resource "azurerm_virtual_network_peering" "vnet_peering-to-hub" {
+  count = var.hub_and_spoke == true ? 1 : 0
+
   name                         = "peer-${local.vnet_name}${local.vnet_purpose}${var.location_code}${var.random_string}-to-hub"
   resource_group_name          = var.resource_group_name
   virtual_network_name         = azurerm_virtual_network.vnet.name
@@ -106,6 +108,8 @@ resource "azurerm_virtual_network_peering" "vnet_peering-to-hub" {
 }
 
 resource "azurerm_virtual_network_peering" "vnet_peering" {
+  count = var.hub_and_spoke == true ? 1 : 0
+
   name                         = "peer-hub-to-${local.vnet_name}${local.vnet_purpose}${var.location_code}${var.random_string}"
   resource_group_name          = var.resource_group_name_hub
   virtual_network_name         = var.name_hub
@@ -113,6 +117,26 @@ resource "azurerm_virtual_network_peering" "vnet_peering" {
   allow_virtual_network_access = true
   allow_forwarded_traffic      = true
   allow_gateway_transit        = true
+}
+
+## Peer the virtual network with a VWAN hub if using VWAN
+##
+module "vwan_connection" {
+  count = var.hub_and_spoke == false ? 1 : 0
+
+  source              = "../../../vwan-connection"
+
+  hub_id  = var.vwan_hub_id
+  vnet_id = azurerm_virtual_network.vnet.id
+  vnet_name = azurerm_virtual_network.vnet.name
+
+  propagate_default_route = var.vwan_propagate_default_route
+  associated_route_table  = var.vwan_associated_route_table
+  propagate_route_labels  = var.vwan_propagate_route_labels
+  propagate_route_tables  = var.vwan_propagate_route_tables
+  inbound_route_map_id    = var.vwan_inbound_route_map_id
+  outbound_route_map_id   = var.vwan_outbound_route_map_id
+  static_routes           = var.vwan_static_routes
 }
 
 ## Create route tables
@@ -126,8 +150,8 @@ module "route_table_dnsin" {
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
-  bgp_route_propagation_enabled = false
-  routes = [
+  bgp_route_propagation_enabled = var.fw_private_ip == null ? true : false
+  routes = var.fw_private_ip == null ? [] : [
     {
       name                   = "udr-default"
       address_prefix         = "0.0.0.0/0"
@@ -146,8 +170,8 @@ module "route_table_dnsout" {
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
-  bgp_route_propagation_enabled = false
-  routes = [
+  bgp_route_propagation_enabled = var.fw_private_ip == null ? true : false
+  routes = var.fw_private_ip == null ? [] : [
     {
       name                   = "udr-default"
       address_prefix         = "0.0.0.0/0"
@@ -166,13 +190,15 @@ module "route_table_tools" {
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
-  bgp_route_propagation_enabled = false
-  routes = [{
-    name                   = "udr-default"
-    address_prefix         = "0.0.0.0/0"
-    next_hop_type          = "VirtualAppliance"
-    next_hop_in_ip_address = var.fw_private_ip
-  }]
+  bgp_route_propagation_enabled = var.fw_private_ip == null ? true : false
+  routes = var.fw_private_ip == null ? [] : [
+    {
+      name                   = "udr-default"
+      address_prefix         = "0.0.0.0/0"
+      next_hop_type          = "VirtualAppliance"
+      next_hop_in_ip_address = var.fw_private_ip
+    }
+  ]
 }
 
 ## Create network security groups
@@ -448,7 +474,8 @@ resource "azurerm_subnet_route_table_association" "route_table_association_dnsin
     azurerm_subnet.subnet_dnsin,
     azurerm_subnet_network_security_group_association.subnet_nsg_association_dnsin,
     module.route_table_dnsin,
-    azurerm_virtual_network_peering.vnet_peering
+    azurerm_virtual_network_peering.vnet_peering,
+    module.vwan_connection
   ]
 
   subnet_id      = azurerm_subnet.subnet_dnsin.id
@@ -460,7 +487,8 @@ resource "azurerm_subnet_route_table_association" "route_table_association_dnsou
     azurerm_subnet.subnet_dnsout,
     azurerm_subnet_network_security_group_association.subnet_nsg_association_dnsout,
     module.route_table_dnsout,
-    azurerm_virtual_network_peering.vnet_peering
+    azurerm_virtual_network_peering.vnet_peering,
+    module.vwan_connection
   ]
 
   subnet_id      = azurerm_subnet.subnet_dnsout.id
@@ -472,7 +500,8 @@ resource "azurerm_subnet_route_table_association" "route_table_association_tools
     azurerm_subnet.subnet_tools,
     azurerm_subnet_network_security_group_association.subnet_nsg_association_tools,
     module.route_table_tools,
-    azurerm_virtual_network_peering.vnet_peering
+    azurerm_virtual_network_peering.vnet_peering,
+    module.vwan_connection
   ]
 
   subnet_id      = azurerm_subnet.subnet_tools.id
@@ -524,6 +553,12 @@ resource "azapi_resource" "vnet_flow_log" {
 ## Create Private DNS Resolver and endpoints
 ##
 module "dns_resolver" {
+  depends_on = [ 
+    azurerm_subnet.subnet_dnsin,
+    azurerm_subnet.subnet_dnsout,
+    azurerm_subnet_route_table_association.route_table_association_dnsin,
+    azurerm_subnet_route_table_association.route_table_association_dnsout
+   ]
 
   source              = "../../../dns/private-dns-resolver"
   random_string       = var.random_string

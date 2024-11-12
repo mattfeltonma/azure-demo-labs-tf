@@ -9,8 +9,13 @@ variable "location" {
   type        = string
 }
 
-variable "name" {
-  description = "The name of the virtual wan"
+variable "location_code" {
+  description = "The location code to append to the resource name"
+  type = string
+}
+
+variable "random_string" {
+  description = "The random string to append to the virtual network gateway name"
   type        = string
 }
 

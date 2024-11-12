@@ -1,3 +1,4 @@
 locals {
-    propagate_default_route = true
+    # Naming conventions
+    vwan_connection_name = "vwanc"
 }

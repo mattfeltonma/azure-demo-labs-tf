@@ -1,8 +1,8 @@
 variable "address_space_onpremises" {
-  description = "The address space on-premises"
+  description = "The address space used on-premises"
   type        = string
 }
-
+ 
 variable "address_space_cloud" {
   description = "The address space in the cloud"
   type        = string
@@ -48,7 +48,7 @@ variable "location_secondary" {
 }
 
 variable "multi_region" {
-  description = "The flag to enable multi-region deployment"
+  description = "Whether to deploy resources in multiple regions"
   type        = bool
   default     = false
 }
@@ -64,7 +64,6 @@ variable "network_watcher_resource_group_name" {
   type        = string
   default     = "NetworkWatcherRG"
 }
-
 
 variable "private_dns_namespaces" {
   description = "The private DNS zones to create and link to the shared services virtual network"
@@ -89,8 +88,8 @@ variable "private_dns_namespaces" {
   ]
 }
 
-variable "sku_tools_size" {
-  description = "The SKU to use for the tools virtual machine"
+variable "sku_vm_size" {
+  description = "The SKU to use for virtual machines created"
   type        = string
   default     = "Standard_D2s_v3"
 }
@@ -104,4 +103,9 @@ variable "sku_tools_os" {
 variable "tags" {
   description = "The tags to apply to the resources"
   type        = map(string)
+}
+
+variable "trusted_ip" {
+  description = "The trusted IP allowed to SSH to machines"
+  type        = string
 }

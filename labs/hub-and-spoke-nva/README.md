@@ -1,6 +1,8 @@
 # Azure Hub and Spoke Lab with Linux NVA
 
 ## Updates
+* 11/12/2024
+  * Modified SSH ports to be 2222 instead of 22
 * 11/05/2024
   * Initial release
 
@@ -14,6 +16,8 @@ It uses a [hub and spoke architecture](https://docs.microsoft.com/en-us/azure/ar
 
 A sample config file for frr can be found [here](../../sample-configs/frr.conf). When defining the routes to advertise, ensure these routes have been added to the vrf's route table. This can be done using the syntax below.
 
+On all virtual machines, SSH is configured for port 2222.
+
 `ip route add table 10 YOUR_CIDR via INTERNAL_NIC_GATEWAY`
 
 The lab that is deployed is pictured below.
@@ -21,7 +25,7 @@ The lab that is deployed is pictured below.
 ![lab image single region](../../assets/lab-hub-spoke-nva-sr.svg)
 *Single Region*
 
-It can optionally be deployed to multiple regions by setting the Terraform parameter multi_region to true. It will then an additional three resource groups in the second region and will re-use existing global Private DNS Zones for internal DNS resolution.
+It can optionally be deployed to multiple regions by setting the Terraform parameter multi_region to true. It will then create an additional three resource groups in the second region and will re-use existing global Private DNS Zones for internal DNS resolution.
 
 ![lab image multiple region](../../assets/lab-hub-spoke-nva-mr.svg)
 *Multi-Region*

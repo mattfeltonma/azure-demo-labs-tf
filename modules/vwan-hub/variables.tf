@@ -9,12 +9,17 @@ variable "law_resource_id" {
 }
 
 variable "location" {
-  description = "The name of the location to deploy the resource to"
+  description = "The location the resource will be deployed to"
   type        = string
 }
 
-variable "name" {
-  description = "The name of the virtual wan"
+variable "location_code" {
+  description = "The code for the location the resource will be deployed to"
+  type        = string
+}
+
+variable "random_string" {
+  description = "The random string to append to the resource name"
   type        = string
 }
 

@@ -8,6 +8,31 @@ output "id" {
   description = "The id of the virtual network"
 }
 
+output "route_table_id_agw" {
+  value       = module.route_table_agw.id
+  description = "The resource id of the Application Gateway route table"
+}
+
+output "route_table_id_app" {
+  value       = module.route_table_app.id
+  description = "The resource id of the application route table"
+}
+
+output "route_table_id_data" {
+  value       = module.route_table_data.id
+  description = "The resource id of the data route table"
+}
+
+output "route_table_id_mgmt" {
+  value       = module.route_table_mgmt.id
+  description = "The resource id of the management route table"
+}
+
+output "route_table_id_vint" {
+  value       = module.route_table_vint.id
+  description = "The resource id of the virtual network integration route table"
+}
+
 output "subnet_id_agw" {
   value       = azurerm_subnet.subnet_agw.id
   description = "The resource id of the Application Gateway subnet"
