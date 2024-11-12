@@ -1,45 +1,33 @@
-# Azure Hub and Spoke Lab with Azure Firewall
+# Azure VWAN Standard
 
 ## Updates
 * 11/12/2024
-  * Modified SSH ports to be 2222 instead of 22
-* 10/28/2024
-  * Extensive cleanup and modified IP ranges to be more reasonable
-  * Added support for deploying to multiple regions
-* 7/22/2024
-  * Added subnets, route tables, and network security groups to allow for deployment of Application Gateway or API Management deployed in internal mode
-  * Added required rules for internal API Management to Azure Firewall rules
-* 6/07/2024
   * Initial release
 
 ## Overview
-The Terraform code in this repository provisions an enterprise-like lab environment for learning and experimentation. The environment is built to include infrastructure components commmon to enterprise environments. These components include a security appliance for centralized mediation, logging, and packet inspection, DNS services, secure remote access, and logging.
+The Terraform code in this repository provisions a lab environment for learning and experimentation with Azure Virtual WAN. It can be used to understand the basics of VWAN in both single and multi-region scenarios.
 
 ## Architecture
-The environment is deployed across three resource groups. One resource group is dedicated to network components (transit), another to shared infrastructure services (shared services), and the last to workload components.
+The environment is deployed across two resource groups. One resource group is dedicated to network components (transit) and another to workload components.
 
-It uses a [hub and spoke architecture](https://docs.microsoft.com/en-us/azure/architecture/reference-architectures/hybrid-networking/hub-spoke?tabs=cli) where all north, south, east, and west traffic is routed through an Azure Firewall deployed in the transit virtual network. Shared services like DNS, provided by Azure Private DNS Resolver, are deployed in a spoke attached to the hub. Another spoke is attached to the hub configured with a variety of subnets to fit most workload purposes.
+It uses a [Azure Virtual WAN](https://learn.microsoft.com/en-us/azure/virtual-wan/) to provide routing from on-premises, between virtual networks in a region, and between virtual networks spread across multiple regions. Two workload virtual networks are connected to a VWAN hub and each workload spoke has a virtual machine running a basic Apache website.
 
-![lab image single region](../../assets/lab-hub-spoke-azfw-sr.svg)
+![lab image single region](../../assets/lab-vwan-standard-sr.svg)
 *Single Region*
 
-It can optionally be deployed to multiple regions by setting the Terraform parameter multi_region to true. It will then an additional three resource groups in the second region and will re-use existing global Private DNS Zones for internal DNS resolution.
+It can optionally be deployed to multiple regions by setting the Terraform parameter multi_region to true. It will then create two additional resource groups in the second region with the same structure as the primary region. This multi-region setup can be used to experiment with Azure VWAN across regions.
 
-![lab image multiple region](../../assets/lab-hub-spoke-azfw-mr.svg)
+![lab image multiple region](../../assets/lab-vwan-standard-mr.svg)
 *Multi-Region*
 
 Other features include:
 
-1) DNS Query logging through Azure Firewall
-2) Azure VPN Gateway to support hybrid connectivity
-3) VNet Flow Logs and traffic analytics to provide for insight into network traffic flows
-4) Azure Bastion to provide for secure remote access
-5) Windows virtual machine provisioned with a variety of tools including Azure Powershell, Azure CLI, and Visual Studio Code
-6) Diagnostic logging enabled for all services that support it with logs being sent to a central Log Analytics Workspace
-7) Private DNS Zones for commonly used services linked to the shared services virtual network to support centralized DNS resolution
-8) Managed identity and Azure Key Vault provisioned for use with application workloads
-9) Centralized Azure Key Vault which stores username and password configured on the virtual machine
-10) Azure Monitor Data Collection Rules for Linux and Windows Virtual Machines
+1) Azure VPN Gateway to support hybrid connectivity
+2) VNet Flow Logs and traffic analytics to provide for insight into network traffic flows
+3) Linux virtual machine running Ubuntu provisioned with a basic Apache website.
+4) Diagnostic logging enabled for all services that support it with logs being sent to a central Log Analytics Workspace
+5) Centralized Azure Key Vault which stores username and password configured on the virtual machine
+6) Azure Monitor Data Collection Rules for Linux and Windows Virtual Machines
 
 ## Prerequisites
 1. You must hold at least the Owner role within each Azure subscription you configure the template to deploy resources to or you must have sufficient delegated permissions to create role assignments.
@@ -78,6 +66,8 @@ Other features include:
 * admin_username - This is the username configured for the administrator account on the virtual machine. This is stored in the central Key Vault for reference.
 
 * admin_password - This is the password configured for the administrator account on the virtual machine. This is stored in the central Key Vault for reference.
+
+* trusted_ip - This is the public IP address of the machine you will use to SSH into the virtual machines used in this lab. Virtual machines are accessible over SSH using port 2222.
 
 * multi_region - Set this to true to deploy to both the primary and secondary regions.
 

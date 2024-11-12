@@ -1,5 +1,7 @@
+# Create VWAN Hub
+#
 resource "azurerm_virtual_hub" "hub" {
-  name                = var.name
+  name                = "${local.vwan_hub_name}${var.location_code}${var.random_string}"
   resource_group_name = var.resource_group_name
   location            = var.location
 
@@ -10,9 +12,6 @@ resource "azurerm_virtual_hub" "hub" {
   address_prefix         = var.address_space
   hub_routing_preference = var.routing_preference
 
-
-  tags = var.tags
-
   lifecycle {
     ignore_changes = [
       tags["created_date"],
@@ -21,14 +20,29 @@ resource "azurerm_virtual_hub" "hub" {
   }
 }
 
-resource "azurerm_vpn_gateway" "hub_gw" {
+# Create VWAN Hub Default Route Table
+#
+resource "azurerm_virtual_hub_route_table" "rt_default" {
   depends_on = [
     azurerm_virtual_hub.hub
   ]
 
+  name           = local.default_route_table_name
+  virtual_hub_id = azurerm_virtual_hub.hub.id
+  labels         = local.default_route_table_labels
+}
+
+# Create Virtual Network Gateway if VPN Gateway is enabled
+#
+resource "azurerm_vpn_gateway" "hub_gw" {
+  depends_on = [
+    azurerm_virtual_hub.hub,
+    azurerm_virtual_hub_route_table.rt_default
+  ]
+
   count = var.vpn_gateway == true ? 1 : 0
 
-  name                = "vngw${var.name}"
+  name                = "${local.virtual_network_gateway_name}${var.location_code}${var.random_string}"
   resource_group_name = var.resource_group_name
   location            = var.location
 
@@ -50,6 +64,7 @@ resource "azurerm_vpn_gateway" "hub_gw" {
   }
 }
 
+# Create diagnostic settings for Virtual Network Gateway
 resource "azurerm_monitor_diagnostic_setting" "diag-base-vpn-gw" {
   count = var.vpn_gateway == true ? 1 : 0
 

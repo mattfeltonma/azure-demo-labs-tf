@@ -1,10 +1,10 @@
 resource "azurerm_virtual_hub_connection" "conn" {
-  name = var.name
+  name = "${local.vwan_connection_name}-${var.vnet_name}"
 
   virtual_hub_id            = var.hub_id
   remote_virtual_network_id = var.vnet_id
 
-  internet_security_enabled = local.propagate_default_route
+  internet_security_enabled = var.propagate_default_route
 
   routing {
     associated_route_table_id = var.associated_route_table

@@ -1,5 +1,5 @@
-# Create a random string
-#
+## Create a random string
+##
 resource "random_string" "unique" {
   length      = 3
   min_numeric = 3
@@ -9,8 +9,8 @@ resource "random_string" "unique" {
   upper       = false
 }
 
-# Create resource groups
-#
+## Create resource groups
+##
 resource "azurerm_resource_group" "rgtran-pri" {
   name     = "rgtr${local.location_code_primary}${random_string.unique.result}"
   location = var.location_primary
@@ -54,8 +54,8 @@ resource "azurerm_resource_group" "rgwork-sec" {
   tags     = local.tags
 }
 
-# Grant the Terraform identity access to Key Vault secrets, certificates, and keys all Key Vaults
-#
+## Grant the Terraform identity access to Key Vault secrets, certificates, and keys all Key Vaults
+##
 resource "azurerm_role_assignment" "assign-tf-pri" {
   name                 = uuidv5("dns", "${azurerm_resource_group.rgshared-pri.id}${data.azurerm_client_config.identity_config.object_id}")
   scope                = azurerm_resource_group.rgshared-pri.id
@@ -72,8 +72,8 @@ resource "azurerm_role_assignment" "assign-tf-sec" {
   principal_id         = data.azurerm_client_config.identity_config.object_id
 }
 
-# Create Log Analytics Workspace and Data Collection Endpoints and Data Collection Rules for Windows and Linux in primary region
-#
+## Create Log Analytics Workspace and Data Collection Endpoints and Data Collection Rules for Windows and Linux in primary region
+##
 module "law" {
   depends_on = [
     azurerm_resource_group.rgshared-pri
@@ -91,8 +91,8 @@ module "law" {
   tags                          = local.tags
 }
 
-# Create Storage Account for Flow Logs
-#
+## Create Storage Account for Flow Logs
+##
 module "storage-account-flow-logs-pri" {
   depends_on = [
     azurerm_resource_group.rgshared-pri,
@@ -129,7 +129,7 @@ module "storage-account-flow-logs-sec" {
   law_resource_id = module.law.id
 }
 
-# Create a transit services virtual network
+## Create a transit services virtual network
 ##
 module "transit-vnet-pri" {
   depends_on = [
@@ -207,11 +207,13 @@ module "shared-vnet-pri" {
     module.transit-vnet-pri
   ]
 
-  source              = "../../modules/vnet/hub-and-spoke/shared"
+  source              = "../../modules/vnet/all/shared"
   random_string       = random_string.unique.result
   location            = var.location_primary
   location_code       = local.location_code_primary
   resource_group_name = azurerm_resource_group.rgshared-pri.name
+
+  hub_and_spoke = true
 
   address_space_vnet  = local.vnet_cidr_ss_pri
   subnet_cidr_bastion = cidrsubnet(local.vnet_cidr_ss_pri, 3, 0)
@@ -257,11 +259,13 @@ module "shared-vnet-sec" {
     module.transit-vnet-sec
   ]
 
-  source              = "../../modules/vnet/hub-and-spoke/shared"
+  source              = "../../modules/vnet/all/shared"
   random_string       = random_string.unique.result
   location            = var.location_secondary
   location_code       = local.location_code_secondary
   resource_group_name = azurerm_resource_group.rgshared-sec[0].name
+
+  hub_and_spoke = true
 
   address_space_vnet  = local.vnet_cidr_ss_sec
   subnet_cidr_bastion = cidrsubnet(local.vnet_cidr_ss_sec, 3, 0)
@@ -358,6 +362,9 @@ module "private_dns_zones" {
 ## If the second region is being deployed, create virtual network links to the existing Private DNS Zones
 ##
 resource "azurerm_private_dns_zone_virtual_network_link" "link-second-region" {
+  depends_on = [
+    module.private_dns_zones
+  ]
   for_each = var.multi_region == true ? {
     for zone in local.private_dns_namespaces_with_regional_zones :
     zone => zone

@@ -1,13 +1,15 @@
 #!/bin/bash
 
-# Initialize variables with default values (if needed)
+## Initialize variables with default values (if needed)
+##
 hostname=""
 router_asn=""
 nva_private_ip=""
 public_nic_gateway_ip=""
 private_nic_gateway_ip=""
 
-# Parse named parameters
+## Parse named parameters
+##
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         --hostname) hostname="$2"; shift ;;
@@ -20,12 +22,25 @@ while [[ "$#" -gt 0 ]]; do
     shift
 done
 
-# Check that all required parameters are provided
+## Check that all required parameters are provided
+##
 if [[ -z "$hostname" || -z "$router_asn" || -z "$nva_private_ip" || -z "$public_nic_gateway_ip" || -z "$private_nic_gateway_ip" ]]; then
     echo "Error: Missing required parameters."
     echo "Usage: $0 --hostname <hostname> --router_asn <asn> --nva_private_ip <ip> --public_nic_gateway_ip <ip> --private_nic_gateway_ip <ip>"
     exit 1
 fi
+
+# Set a custom port for SSH
+mkdir -p /etc/systemd/system/ssh.socket.d
+cat >/etc/systemd/system/ssh.socket.d/listen.conf <<EOF
+[Socket]
+ListenStream=
+ListenStream=2222
+EOF
+
+# Restart SSH service
+systemctl daemon-reload
+systemctl restart ssh.socket
 
 ## Update repositories
 ##

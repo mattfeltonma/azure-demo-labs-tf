@@ -4,13 +4,9 @@ locals {
 
   private_endpoint_network_policies = "Enabled"
 
-  # Get first two characters of the location
-  location_short = substr(var.location, 0, 2)
-
   # Configure standard naming convention for relevant resources
   vnet_name      = "vnet"
   flow_logs_name = "fl"
-  dcr_association = "dcra"
 
   # Configure three character code for purpose of vnet
   vnet_purpose = "wl"
@@ -23,7 +19,6 @@ locals {
   subnet_name_mgmt = "snet-mgmt"
   subnet_name_agw  = "snet-agw"
   subnet_name_apim = "snet-apim"
-  subnet_name_tools = "snet-tools"
 
   # Enable flow log retention policy for 7 days
   flow_logs_enabled                  = true

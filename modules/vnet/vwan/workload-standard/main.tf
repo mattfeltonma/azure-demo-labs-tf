@@ -1,12 +1,12 @@
 ## Create virtual network
 ##
 resource "azurerm_virtual_network" "vnet" {
-  name                = "${local.vnet_name}${local.vnet_purpose}${local.location_short}${var.random_string}"
+  name                = "${local.vnet_name}${local.vnet_purpose}${var.location_code}${var.random_string}"
   location            = var.location
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
-  address_space = var.address_space_vnet
+  address_space = [var.address_space_vnet]
   dns_servers   = var.dns_servers
 
   lifecycle {
@@ -37,7 +37,7 @@ resource "azurerm_subnet" "subnet_agw" {
   name                              = local.subnet_name_agw
   resource_group_name               = var.resource_group_name
   virtual_network_name              = azurerm_virtual_network.vnet.name
-  address_prefixes                  = var.subnet_cidr_agw
+  address_prefixes                  = [var.subnet_cidr_agw]
   private_endpoint_network_policies = local.private_endpoint_network_policies
 }
 
@@ -46,7 +46,7 @@ resource "azurerm_subnet" "subnet_apim" {
   name                              = local.subnet_name_apim
   resource_group_name               = var.resource_group_name
   virtual_network_name              = azurerm_virtual_network.vnet.name
-  address_prefixes                  = var.subnet_cidr_apim
+  address_prefixes                  = [var.subnet_cidr_apim]
   private_endpoint_network_policies = local.private_endpoint_network_policies
 }
 
@@ -55,7 +55,7 @@ resource "azurerm_subnet" "subnet_app" {
   name                              = local.subnet_name_app
   resource_group_name               = var.resource_group_name
   virtual_network_name              = azurerm_virtual_network.vnet.name
-  address_prefixes                  = var.subnet_cidr_app
+  address_prefixes                  = [var.subnet_cidr_app]
   private_endpoint_network_policies = local.private_endpoint_network_policies
 }
 
@@ -64,7 +64,7 @@ resource "azurerm_subnet" "subnet_data" {
   name                              = local.subnet_name_data
   resource_group_name               = var.resource_group_name
   virtual_network_name              = azurerm_virtual_network.vnet.name
-  address_prefixes                  = var.subnet_cidr_data
+  address_prefixes                  = [var.subnet_cidr_data]
   private_endpoint_network_policies = local.private_endpoint_network_policies
 }
 
@@ -73,7 +73,7 @@ resource "azurerm_subnet" "subnet_mgmt" {
   name                              = local.subnet_name_mgmt
   resource_group_name               = var.resource_group_name
   virtual_network_name              = azurerm_virtual_network.vnet.name
-  address_prefixes                  = var.subnet_cidr_mgmt
+  address_prefixes                  = [var.subnet_cidr_mgmt]
   private_endpoint_network_policies = local.private_endpoint_network_policies
 }
 
@@ -82,16 +82,7 @@ resource "azurerm_subnet" "subnet_svc" {
   name                              = local.subnet_name_svc
   resource_group_name               = var.resource_group_name
   virtual_network_name              = azurerm_virtual_network.vnet.name
-  address_prefixes                  = var.subnet_cidr_svc
-  private_endpoint_network_policies = local.private_endpoint_network_policies
-}
-
-resource "azurerm_subnet" "subnet_tools" {
-
-  name                              = local.subnet_name_tools
-  resource_group_name               = var.resource_group_name
-  virtual_network_name              = azurerm_virtual_network.vnet.name
-  address_prefixes                  = var.subnet_cidr_tools
+  address_prefixes                  = [var.subnet_cidr_svc]
   private_endpoint_network_policies = local.private_endpoint_network_policies
 }
 
@@ -100,8 +91,34 @@ resource "azurerm_subnet" "subnet_vint" {
   name                              = local.subnet_name_vint
   resource_group_name               = var.resource_group_name
   virtual_network_name              = azurerm_virtual_network.vnet.name
-  address_prefixes                  = var.subnet_cidr_vint
+  address_prefixes                  = [var.subnet_cidr_vint]
   private_endpoint_network_policies = local.private_endpoint_network_policies
+}
+
+## Peer the virtual network with the hub virtual network
+##
+resource "azurerm_virtual_network_peering" "vnet_peering_to_hub" {
+  name                         = "peer-${local.vnet_name}${local.vnet_purpose}${var.location_code}${var.random_string}-to-hub"
+  resource_group_name          = var.resource_group_name
+  virtual_network_name         = azurerm_virtual_network.vnet.name
+  remote_virtual_network_id    = var.vnet_id_hub
+  allow_virtual_network_access = true
+  allow_forwarded_traffic      = true
+  use_remote_gateways          = true
+}
+
+resource "azurerm_virtual_network_peering" "vnet_peering_to_spoke" {
+  depends_on = [
+    azurerm_virtual_network_peering.vnet_peering_to_hub
+  ]
+
+  name                         = "peer-hub-to-${local.vnet_name}${local.vnet_purpose}${var.location_code}${var.random_string}"
+  resource_group_name          = var.resource_group_name_hub
+  virtual_network_name         = var.name_hub
+  remote_virtual_network_id    = azurerm_virtual_network.vnet.id
+  allow_virtual_network_access = true
+  allow_forwarded_traffic      = true
+  allow_gateway_transit        = true
 }
 
 ## Create route tables
@@ -112,15 +129,34 @@ module "route_table_agw" {
   purpose             = "agw"
   random_string       = var.random_string
   location            = var.location
+  location_code       = var.location_code
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
-  bgp_route_propagation_enabled = false
-  routes = [
+  bgp_route_propagation_enabled = var.fw_private_ip == null ? true : false
+  routes = var.fw_private_ip == null ? [] : [
     {
       name           = "udr-default"
       address_prefix = "0.0.0.0/0"
       next_hop_type  = "Internet"
+    },
+    {
+      name                   = "udr-rfc1918-1"
+      address_prefix         = "10.0.0.0/8"
+      next_hop_type          = "VirtualAppliance"
+      next_hop_in_ip_address = var.fw_private_ip
+    },
+    {
+      name                   = "udr-rfc1918-2"
+      address_prefix         = "172.16.0.0/12"
+      next_hop_type          = "VirtualAppliance"
+      next_hop_in_ip_address = var.fw_private_ip
+    },
+    {
+      name                   = "udr-rfc1918-3"
+      address_prefix         = "192.168.0.0/16"
+      next_hop_type          = "VirtualAppliance"
+      next_hop_in_ip_address = var.fw_private_ip
     }
   ]
 }
@@ -130,11 +166,18 @@ module "route_table_apim" {
   purpose             = "apim"
   random_string       = var.random_string
   location            = var.location
+  location_code       = var.location_code
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
-  bgp_route_propagation_enabled = false
-  routes = [
+  bgp_route_propagation_enabled = var.fw_private_ip == null ? true : false
+  routes = var.fw_private_ip == null ? [] : [
+    {
+      name                   = "udr-default"
+      address_prefix         = "0.0.0.0/0"
+      next_hop_type          = "VirtualAppliance"
+      next_hop_in_ip_address = var.fw_private_ip
+    },
     {
       name           = "udr-api-management"
       address_prefix = "ApiManagement"
@@ -148,11 +191,18 @@ module "route_table_app" {
   purpose             = "app"
   random_string       = var.random_string
   location            = var.location
+  location_code       = var.location_code
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
-  bgp_route_propagation_enabled = false
-  routes = [
+  bgp_route_propagation_enabled = var.fw_private_ip == null ? true : false
+  routes = var.fw_private_ip == null ? [] : [
+    {
+      name                   = "udr-default"
+      address_prefix         = "0.0.0.0/0"
+      next_hop_type          = "VirtualAppliance"
+      next_hop_in_ip_address = var.fw_private_ip
+    }
   ]
 }
 
@@ -161,11 +211,18 @@ module "route_table_data" {
   purpose             = "data"
   random_string       = var.random_string
   location            = var.location
+  location_code       = var.location_code
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
-  bgp_route_propagation_enabled = false
-  routes = [
+  bgp_route_propagation_enabled = var.fw_private_ip == null ? true : false
+  routes = var.fw_private_ip == null ? [] : [
+    {
+      name                   = "udr-default"
+      address_prefix         = "0.0.0.0/0"
+      next_hop_type          = "VirtualAppliance"
+      next_hop_in_ip_address = var.fw_private_ip
+    }
   ]
 }
 
@@ -174,37 +231,18 @@ module "route_table_mgmt" {
   purpose             = "mgmt"
   random_string       = var.random_string
   location            = var.location
+  location_code       = var.location_code
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
-  bgp_route_propagation_enabled = false
-  routes = [
-  ]
-}
-
-module "route_table_svc" {
-  source              = "../../../route-table"
-  purpose             = "svc"
-  random_string       = var.random_string
-  location            = var.location
-  resource_group_name = var.resource_group_name
-  tags                = var.tags
-
-  bgp_route_propagation_enabled = false
-  routes = [
-  ]
-}
-
-module "route_table_tools" {
-  source              = "../../../route-table"
-  purpose             = "tools"
-  random_string       = var.random_string
-  location            = var.location
-  resource_group_name = var.resource_group_name
-  tags                = var.tags
-
-  bgp_route_propagation_enabled = false
-  routes = [
+  bgp_route_propagation_enabled = var.fw_private_ip == null ? true : false
+  routes = var.fw_private_ip == null ? [] : [
+    {
+      name                   = "udr-default"
+      address_prefix         = "0.0.0.0/0"
+      next_hop_type          = "VirtualAppliance"
+      next_hop_in_ip_address = var.fw_private_ip
+    }
   ]
 }
 
@@ -213,11 +251,18 @@ module "route_table_vint" {
   purpose             = "vint"
   random_string       = var.random_string
   location            = var.location
+    location_code = var.location_code
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
-  bgp_route_propagation_enabled = false
-  routes = [
+  bgp_route_propagation_enabled = var.fw_private_ip == null ? true : false
+  routes = var.fw_private_ip == null ? [] : [
+    {
+      name                   = "udr-default"
+      address_prefix         = "0.0.0.0/0"
+      next_hop_type          = "VirtualAppliance"
+      next_hop_in_ip_address = var.fw_private_ip
+    }
   ]
 }
 
@@ -229,6 +274,7 @@ module "nsg_agw" {
   purpose             = "agw"
   random_string       = var.random_string
   location            = var.location
+    location_code = var.location_code
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
@@ -342,6 +388,7 @@ module "nsg_apim" {
   purpose             = "apim"
   random_string       = var.random_string
   location            = var.location
+    location_code = var.location_code
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
@@ -434,6 +481,7 @@ module "nsg_app" {
   purpose             = "app"
   random_string       = var.random_string
   location            = var.location
+    location_code = var.location_code
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
@@ -447,6 +495,7 @@ module "nsg_data" {
   purpose             = "data"
   random_string       = var.random_string
   location            = var.location
+    location_code = var.location_code
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
@@ -460,6 +509,7 @@ module "nsg_mgmt" {
   purpose             = "mgmt"
   random_string       = var.random_string
   location            = var.location
+    location_code = var.location_code
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
@@ -473,40 +523,12 @@ module "nsg_svc" {
   purpose             = "svc"
   random_string       = var.random_string
   location            = var.location
+    location_code = var.location_code
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
   law_resource_id = var.law_resource_id
   security_rules = [
-  ]
-}
-
-module "nsg_tools" {
-  source              = "../../../network-security-group"
-  purpose             = "tools"
-  random_string       = var.random_string
-  location            = var.location
-  resource_group_name = var.resource_group_name
-  tags                = var.tags
-
-  law_resource_id = var.law_resource_id
-  security_rules = [
-
-    {
-      name                   = "AllowTrustedIp"
-      description            = "Allow HTTP and SSH from a trusted IP address"
-      priority               = 1000
-      direction              = "Inbound"
-      access                 = "Allow"
-      protocol               = "Tcp"
-      source_port_range      = "*"
-      destination_port_ranges = [
-        22,
-        3389
-      ]
-      source_address_prefix = var.trusted_ip_address
-      destination_address_prefix = "VirtualNetwork"
-    },
   ]
 }
 
@@ -515,6 +537,7 @@ module "nsg_vint" {
   purpose             = "vint"
   random_string       = var.random_string
   location            = var.location
+    location_code = var.location_code
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
@@ -528,7 +551,8 @@ module "nsg_vint" {
 resource "azurerm_subnet_network_security_group_association" "subnet_nsg_association_agw" {
   depends_on = [
     azurerm_subnet.subnet_agw,
-    module.nsg_agw
+    module.nsg_agw,
+    azurerm_virtual_network_peering.vnet_peering_to_spoke
   ]
 
   subnet_id                 = azurerm_subnet.subnet_agw.id
@@ -538,7 +562,8 @@ resource "azurerm_subnet_network_security_group_association" "subnet_nsg_associa
 resource "azurerm_subnet_network_security_group_association" "subnet_nsg_association_apim" {
   depends_on = [
     azurerm_subnet.subnet_apim,
-    module.nsg_apim
+    module.nsg_apim,
+    azurerm_virtual_network_peering.vnet_peering_to_spoke
   ]
 
   subnet_id                 = azurerm_subnet.subnet_apim.id
@@ -548,7 +573,8 @@ resource "azurerm_subnet_network_security_group_association" "subnet_nsg_associa
 resource "azurerm_subnet_network_security_group_association" "subnet_nsg_association_app" {
   depends_on = [
     azurerm_subnet.subnet_app,
-    module.nsg_app
+    module.nsg_app,
+    azurerm_virtual_network_peering.vnet_peering_to_spoke
   ]
 
   subnet_id                 = azurerm_subnet.subnet_app.id
@@ -558,7 +584,8 @@ resource "azurerm_subnet_network_security_group_association" "subnet_nsg_associa
 resource "azurerm_subnet_network_security_group_association" "subnet_nsg_association_data" {
   depends_on = [
     azurerm_subnet.subnet_data,
-    module.nsg_data
+    module.nsg_data,
+    azurerm_virtual_network_peering.vnet_peering_to_spoke
   ]
 
   subnet_id                 = azurerm_subnet.subnet_data.id
@@ -568,7 +595,8 @@ resource "azurerm_subnet_network_security_group_association" "subnet_nsg_associa
 resource "azurerm_subnet_network_security_group_association" "subnet_nsg_association_mgmt" {
   depends_on = [
     azurerm_subnet.subnet_mgmt,
-    module.nsg_mgmt
+    module.nsg_mgmt,
+    azurerm_virtual_network_peering.vnet_peering_to_spoke
   ]
 
   subnet_id                 = azurerm_subnet.subnet_mgmt.id
@@ -578,27 +606,19 @@ resource "azurerm_subnet_network_security_group_association" "subnet_nsg_associa
 resource "azurerm_subnet_network_security_group_association" "subnet_nsg_association_svc" {
   depends_on = [
     azurerm_subnet.subnet_svc,
-    module.nsg_svc
+    module.nsg_svc,
+    azurerm_virtual_network_peering.vnet_peering_to_spoke
   ]
 
   subnet_id                 = azurerm_subnet.subnet_svc.id
   network_security_group_id = module.nsg_svc.id
 }
 
-resource "azurerm_subnet_network_security_group_association" "subnet_nsg_association_tools" {
-  depends_on = [
-    azurerm_subnet.subnet_tools,
-    module.nsg_tools
-  ]
-
-  subnet_id                 = azurerm_subnet.subnet_tools.id
-  network_security_group_id = module.nsg_tools.id
-}
-
 resource "azurerm_subnet_network_security_group_association" "subnet_nsg_association_vint" {
   depends_on = [
     azurerm_subnet.subnet_vint,
-    module.nsg_vint
+    module.nsg_vint,
+    azurerm_virtual_network_peering.vnet_peering_to_spoke
   ]
 
   subnet_id                 = azurerm_subnet.subnet_vint.id
@@ -611,7 +631,9 @@ resource "azurerm_subnet_route_table_association" "route_table_association_agw" 
   depends_on = [
     azurerm_subnet.subnet_agw,
     azurerm_subnet_network_security_group_association.subnet_nsg_association_agw,
-    module.route_table_agw
+    module.route_table_agw,
+    azurerm_virtual_network_peering.vnet_peering_to_hub,
+    azurerm_virtual_network_peering.vnet_peering_to_spoke
   ]
 
   subnet_id      = azurerm_subnet.subnet_agw.id
@@ -622,7 +644,9 @@ resource "azurerm_subnet_route_table_association" "route_table_association_apim"
   depends_on = [
     azurerm_subnet.subnet_apim,
     azurerm_subnet_network_security_group_association.subnet_nsg_association_apim,
-    module.route_table_apim
+    module.route_table_apim,
+    azurerm_virtual_network_peering.vnet_peering_to_hub,
+    azurerm_virtual_network_peering.vnet_peering_to_spoke
   ]
 
   subnet_id      = azurerm_subnet.subnet_apim.id
@@ -633,7 +657,9 @@ resource "azurerm_subnet_route_table_association" "route_table_association_app" 
   depends_on = [
     azurerm_subnet.subnet_app,
     azurerm_subnet_network_security_group_association.subnet_nsg_association_app,
-    module.route_table_app
+    module.route_table_app,
+    azurerm_virtual_network_peering.vnet_peering_to_hub,
+    azurerm_virtual_network_peering.vnet_peering_to_spoke
   ]
 
   subnet_id      = azurerm_subnet.subnet_app.id
@@ -644,7 +670,9 @@ resource "azurerm_subnet_route_table_association" "route_table_association_data"
   depends_on = [
     azurerm_subnet.subnet_data,
     azurerm_subnet_network_security_group_association.subnet_nsg_association_data,
-    module.route_table_data
+    module.route_table_data,
+    azurerm_virtual_network_peering.vnet_peering_to_hub,
+    azurerm_virtual_network_peering.vnet_peering_to_spoke
   ]
 
   subnet_id      = azurerm_subnet.subnet_data.id
@@ -655,40 +683,22 @@ resource "azurerm_subnet_route_table_association" "route_table_association_mgmt"
   depends_on = [
     azurerm_subnet.subnet_mgmt,
     azurerm_subnet_network_security_group_association.subnet_nsg_association_mgmt,
-    module.route_table_mgmt
+    module.route_table_mgmt,
+    azurerm_virtual_network_peering.vnet_peering_to_hub,
+    azurerm_virtual_network_peering.vnet_peering_to_spoke
   ]
 
   subnet_id      = azurerm_subnet.subnet_mgmt.id
   route_table_id = module.route_table_mgmt.id
 }
 
-resource "azurerm_subnet_route_table_association" "route_table_association_svc" {
-  depends_on = [
-    azurerm_subnet.subnet_svc,
-    azurerm_subnet_network_security_group_association.subnet_nsg_association_svc,
-    module.route_table_svc
-  ]
-
-  subnet_id      = azurerm_subnet.subnet_svc.id
-  route_table_id = module.route_table_svc.id
-}
-
-resource "azurerm_subnet_route_table_association" "route_table_association_tools" {
-  depends_on = [
-    azurerm_subnet.subnet_tools,
-    azurerm_subnet_network_security_group_association.subnet_nsg_association_tools,
-    module.route_table_tools
-  ]
-
-  subnet_id      = azurerm_subnet.subnet_tools.id
-  route_table_id = module.route_table_tools.id
-}
-
 resource "azurerm_subnet_route_table_association" "route_table_association_vint" {
   depends_on = [
     azurerm_subnet.subnet_vint,
     azurerm_subnet_network_security_group_association.subnet_nsg_association_vint,
-    module.route_table_vint
+    module.route_table_vint,
+    azurerm_virtual_network_peering.vnet_peering_to_hub,
+    azurerm_virtual_network_peering.vnet_peering_to_spoke
   ]
 
   subnet_id      = azurerm_subnet.subnet_vint.id
@@ -702,43 +712,23 @@ module "managed_identity" {
   purpose             = "wlp"
   random_string       = var.random_string
   location            = var.location
+    location_code = var.location_code
   resource_group_name = var.resource_group_name
   tags                = var.tags
-}
-
-## Create Private DNS Zones and Virtual Network Links
-##
-module "private_dns_zones" {
-  depends_on = [
-    azurerm_virtual_network.vnet
-  ]
-
-  source              = "../../../dns/private-dns-zone"
-  resource_group_name = var.resource_group_name
-
-  for_each = {
-    for zone in var.private_dns_namespaces :
-    zone => zone
-  }
-
-  name    = each.value
-  vnet_id = azurerm_virtual_network.vnet.id
-
-  tags = var.tags
 }
 
 ## Create a Key Vault instance
 ##
 module "key_vault" {
   depends_on = [
-    module.managed_identity,
-    module.private_dns_zones
+    module.managed_identity
   ]
 
   source              = "../../../key-vault"
   purpose             = "wlp"
   random_string       = var.random_string
   location            = var.location
+    location_code = var.location_code
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
@@ -746,6 +736,7 @@ module "key_vault" {
   kv_admin_object_id = module.managed_identity.principal_id
 
   firewall_default_action = "Allow"
+  firewall_bypass         = "AzureServices"
 }
 
 ## Create a Private Endpoint for the Key Vault
@@ -754,17 +745,18 @@ module "private_endpoint_kv" {
   source              = "../../../private-endpoint"
   random_string       = var.random_string
   location            = var.location
+    location_code = var.location_code
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
-  resource_name     = module.key_vault.name
-  resource_id       = module.key_vault.id
+  resource_name    = module.key_vault.name
+  resource_id      = module.key_vault.id
   subresource_name = "vault"
 
 
   subnet_id = azurerm_subnet.subnet_svc.id
   private_dns_zone_ids = [
-    "/subscriptions/${var.sub_id}/resourceGroups/${var.resource_group_name}/providers/Microsoft.Network/privateDnsZones/privatelink.vaultcore.azure.net"
+    "/subscriptions/${var.sub_id_shared}/resourceGroups/${var.resource_group_name_shared}/providers/Microsoft.Network/privateDnsZones/privatelink.vaultcore.azure.net"
   ]
 }
 
@@ -776,7 +768,7 @@ resource "azapi_resource" "vnet_flow_log" {
   ]
 
   type      = "Microsoft.Network/networkWatchers/flowLogs@2023-11-01"
-  name      = "${local.flow_logs_name}${local.vnet_purpose}${local.location_short}${var.random_string}"
+  name      = "${local.flow_logs_name}${local.vnet_purpose}${var.location_code}${var.random_string}"
   location  = var.location
   parent_id = var.network_watcher_resource_id
 
@@ -808,67 +800,4 @@ resource "azapi_resource" "vnet_flow_log" {
     }
   })
   tags = var.tags
-}
-
-module "public_ip_address_windows_tool" {
-  depends_on = [ 
-    azapi_resource.vnet_flow_log 
-  ]
-
-  source              = "../../../public-ip"
-  resource_group_name = var.resource_group_name
-  location = var.location
-  
-  purpose = "wto"
-  random_string = var.random_string
-  law_resource_id = var.law_resource_id
-  tags = var.tags
-
-
-}
-
-## Deploy Windows Tool server
-##
-module "windows_vm_tool" {
-  depends_on = [
-    azapi_resource.vnet_flow_log
-  ]
-
-  source              = "../../../virtual-machine/windows-tools"
-  purpose             = "too"
-  random_string       = var.random_string
-  location            = var.location
-  resource_group_name = var.resource_group_name
-
-  admin_username = var.admin_username
-  admin_password = var.admin_password
-
-  vm_size = var.sku_tools_size
-  image_reference = {
-    publisher = "MicrosoftWindowsServer"
-    offer     = "WindowsServer"
-    sku       = var.sku_tools_os
-    version   = "latest"
-  }
-
-  public_ip_address_id = module.public_ip_address_windows_tool.id
-  subnet_id = azurerm_subnet.subnet_tools.id
-
-  tags = var.tags
-}
-
-resource "azurerm_monitor_data_collection_rule_association" "dcra_win_tools" {
-  depends_on = [
-    module.windows_vm_tool
-  ]
-  name                    = "${local.dcr_association}${module.windows_vm_tool.name}"
-  description             = "Data Collection Rule Association for Windows Tools VM"
-  data_collection_rule_id = var.dcr_id_windows
-  target_resource_id      = module.windows_vm_tool.id
-}
-
-resource "azurerm_monitor_data_collection_rule_association" "dcea_win_tools" {
-  target_resource_id          = module.windows_vm_tool.id
-  data_collection_endpoint_id = var.dce_id
-  description                 = "Data Collection Endpoint Association for Windows Tools VM"
 }

@@ -160,7 +160,7 @@ module "transit-vnet-pri" {
   vm_size_nva  = var.sku_vm_size
   dce_id       = module.law.dce_id_primary
   dcr_id_linux = module.law.dcr_id_linux
-  asn_router = local.asn_router_r1
+  asn_router   = local.asn_router_r1
 
   network_watcher_resource_id          = "/subscriptions/${data.azurerm_subscription.current.subscription_id}/resourceGroups/${var.network_watcher_resource_group_name}/providers/Microsoft.Network/networkWatchers/${var.network_watcher_name}${var.location_primary}"
   storage_account_id_flow_logs         = module.storage-account-flow-logs-pri.id
@@ -202,7 +202,7 @@ module "transit-vnet-sec" {
   vm_size_nva  = var.sku_vm_size
   dce_id       = module.law.dce_id_secondary
   dcr_id_linux = module.law.dcr_id_linux
-  asn_router = local.asn_router_r2
+  asn_router   = local.asn_router_r2
 
   network_watcher_resource_id          = "/subscriptions/${data.azurerm_subscription.current.subscription_id}/resourceGroups/${var.network_watcher_resource_group_name}/providers/Microsoft.Network/networkWatchers/${var.network_watcher_name}${var.location_secondary}"
   storage_account_id_flow_logs         = module.storage-account-flow-logs-sec[0].id
@@ -221,11 +221,13 @@ module "shared-vnet-pri" {
     module.transit-vnet-pri
   ]
 
-  source              = "../../modules/vnet/hub-and-spoke/shared"
+  source              = "../../modules/vnet/all/shared"
   random_string       = random_string.unique.result
   location            = var.location_primary
   location_code       = local.location_code_primary
   resource_group_name = azurerm_resource_group.rgshared-pri.name
+
+  hub_and_spoke = true
 
   address_space_vnet  = local.vnet_cidr_ss_pri
   subnet_cidr_bastion = cidrsubnet(local.vnet_cidr_ss_pri, 3, 0)
@@ -269,11 +271,13 @@ module "shared-vnet-sec" {
     module.transit-vnet-sec
   ]
 
-  source              = "../../modules/vnet/hub-and-spoke/shared"
+  source              = "../../modules/vnet/all/shared"
   random_string       = random_string.unique.result
   location            = var.location_secondary
   location_code       = local.location_code_secondary
   resource_group_name = azurerm_resource_group.rgshared-sec[0].name
+
+  hub_and_spoke = true
 
   address_space_vnet  = local.vnet_cidr_ss_sec
   subnet_cidr_bastion = cidrsubnet(local.vnet_cidr_ss_sec, 3, 0)
@@ -358,7 +362,7 @@ module "private_dns_zones" {
     for zone in local.private_dns_namespaces_with_regional_zones :
     zone => zone
   }
- 
+
   name    = each.value
   vnet_id = module.shared-vnet-pri.id
 
@@ -368,9 +372,9 @@ module "private_dns_zones" {
 ## If the second region is being deployed, create virtual network links to the existing Private DNS Zones
 ##
 resource "azurerm_private_dns_zone_virtual_network_link" "link-second-region" {
-  depends_on = [ 
-    module.private_dns_zones 
-]
+  depends_on = [
+    module.private_dns_zones
+  ]
 
   for_each = var.multi_region == true ? {
     for zone in local.private_dns_namespaces_with_regional_zones :
@@ -444,8 +448,8 @@ module "workload-vnet-pri" {
   resource_group_name_shared = azurerm_resource_group.rgshared-pri.name
 
   law_resource_id = module.law.id
-  dce_id = module.law.dce_id_primary
-  dcr_id_linux = module.law.dcr_id_linux
+  dce_id          = module.law.dce_id_primary
+  dcr_id_linux    = module.law.dcr_id_linux
 
   admin_username = var.admin_username
   admin_password = var.admin_password
@@ -489,8 +493,8 @@ module "workload-vnet-sec" {
   resource_group_name_shared = azurerm_resource_group.rgshared-pri.name
 
   law_resource_id = module.law.id
-  dce_id = module.law.dce_id_secondary
-  dcr_id_linux = module.law.dcr_id_linux
+  dce_id          = module.law.dce_id_secondary
+  dcr_id_linux    = module.law.dcr_id_linux
 
   admin_username = var.admin_username
   admin_password = var.admin_password

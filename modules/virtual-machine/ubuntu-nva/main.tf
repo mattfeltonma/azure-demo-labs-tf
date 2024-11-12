@@ -23,7 +23,7 @@ resource "azurerm_network_interface" "public-nic" {
   name                  = "${local.nic_name_ext}${var.purpose}${var.location_code}${var.random_string}"
   location              = var.location
   resource_group_name   = var.resource_group_name
-  accelerated_networking_enabled = true
+  accelerated_networking_enabled = false
   ip_forwarding_enabled = true
   ip_configuration {
     name                          = local.ip_configuration_name

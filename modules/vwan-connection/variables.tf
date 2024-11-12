@@ -14,15 +14,16 @@ variable "inbound_route_map_id" {
   default = null
 }
 
-variable "name" {
-  description = "The name of the VWAN Hub Connection"
-  type        = string
-}
-
 variable "outbound_route_map_id" {
   description = "The resource id of the outbound route map to apply to the virtual network connection"
   type        = string
   default = null
+}
+
+variable "propagate_default_route" {
+  description = "The default route should be propagated to this virtual network"
+  type = bool
+  default = true
 }
 
 variable "propagate_route_labels" {
@@ -47,6 +48,11 @@ variable "static_routes" {
 
 variable "vnet_id" {
   description = "The resource id of the virtual network to connect to the VWAN Hub"
+  type        = string
+}
+
+variable "vnet_name" {
+  description = "The name of the virtual network to connect to the VWAN Hub"
   type        = string
 }
 

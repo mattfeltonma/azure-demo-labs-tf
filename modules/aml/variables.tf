@@ -1,10 +1,10 @@
-variable "user_object_id" {
-  description = "The object id of the user who will manage the AI Studio Hub"
+variable "location" {
+  description = "The name of the location to provision the resources to"
   type        = string
 }
 
-variable "location" {
-  description = "The name of the location to provision the resources to"
+variable "location_code" {
+  description = "The location code to append to the resource name"
   type        = string
 }
 
@@ -36,6 +36,11 @@ variable "subnet_id" {
 variable "tags" {
   description = "The tags to apply to the resource"
   type        = map(string)
+}
+
+variable "user_object_id" {
+  description = "The object id of the user who will manage the AI Studio Hub"
+  type        = string
 }
 
 variable "workload_vnet_location" {

@@ -12,7 +12,7 @@ locals {
     allocation = "Static"
 
     # Set implementation specific settings
-    probe_port = 22
+    probe_port = 2222
     probe_protocol = "Tcp"
     probe_interval = 5
     probe_number_of_probes = 2
