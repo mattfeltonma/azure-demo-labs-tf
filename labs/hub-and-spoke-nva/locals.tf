@@ -29,6 +29,7 @@ locals {
     "koreacentral"       = "krc",
     "koreasouth"         = "krs",
     "mexicocentral"      = "mxc",
+    "newzealandnorth"    = "nzn",
     "northcentralus"     = "ncus",
     "northeurope"        = "ne",
     "norwayeast"         = "nwe",
