@@ -95,31 +95,26 @@ resource "azurerm_subnet" "subnet_vint" {
   private_endpoint_network_policies = local.private_endpoint_network_policies
 }
 
-## Peer the virtual network with the hub virtual network
+## Peer the virtual network with a VWAN hub
 ##
-resource "azurerm_virtual_network_peering" "vnet_peering_to_hub" {
-  name                         = "peer-${local.vnet_name}${local.vnet_purpose}${var.location_code}${var.random_string}-to-hub"
-  resource_group_name          = var.resource_group_name
-  virtual_network_name         = azurerm_virtual_network.vnet.name
-  remote_virtual_network_id    = var.vnet_id_hub
-  allow_virtual_network_access = true
-  allow_forwarded_traffic      = true
-  use_remote_gateways          = true
+module "vwan_connection" {
+
+  source = "../../../vwan-connection"
+
+  hub_id    = var.vwan_hub_id
+  vnet_id   = azurerm_virtual_network.vnet.id
+  vnet_name = azurerm_virtual_network.vnet.name
+
+  secure_hub              = var.vwan_secure_hub
+  propagate_default_route = var.vwan_propagate_default_route
+  associated_route_table  = var.vwan_associated_route_table
+  propagate_route_labels  = var.vwan_propagate_route_labels
+  propagate_route_tables  = var.vwan_propagate_route_tables
+  inbound_route_map_id    = var.vwan_inbound_route_map_id
+  outbound_route_map_id   = var.vwan_outbound_route_map_id
+  static_routes           = var.vwan_static_routes
 }
 
-resource "azurerm_virtual_network_peering" "vnet_peering_to_spoke" {
-  depends_on = [
-    azurerm_virtual_network_peering.vnet_peering_to_hub
-  ]
-
-  name                         = "peer-hub-to-${local.vnet_name}${local.vnet_purpose}${var.location_code}${var.random_string}"
-  resource_group_name          = var.resource_group_name_hub
-  virtual_network_name         = var.name_hub
-  remote_virtual_network_id    = azurerm_virtual_network.vnet.id
-  allow_virtual_network_access = true
-  allow_forwarded_traffic      = true
-  allow_gateway_transit        = true
-}
 
 ## Create route tables
 ##
@@ -133,30 +128,12 @@ module "route_table_agw" {
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
-  bgp_route_propagation_enabled = var.fw_private_ip == null ? true : false
-  routes = var.fw_private_ip == null ? [] : [
+  bgp_route_propagation_enabled = true
+  routes = [
     {
       name           = "udr-default"
       address_prefix = "0.0.0.0/0"
       next_hop_type  = "Internet"
-    },
-    {
-      name                   = "udr-rfc1918-1"
-      address_prefix         = "10.0.0.0/8"
-      next_hop_type          = "VirtualAppliance"
-      next_hop_in_ip_address = var.fw_private_ip
-    },
-    {
-      name                   = "udr-rfc1918-2"
-      address_prefix         = "172.16.0.0/12"
-      next_hop_type          = "VirtualAppliance"
-      next_hop_in_ip_address = var.fw_private_ip
-    },
-    {
-      name                   = "udr-rfc1918-3"
-      address_prefix         = "192.168.0.0/16"
-      next_hop_type          = "VirtualAppliance"
-      next_hop_in_ip_address = var.fw_private_ip
     }
   ]
 }
@@ -170,14 +147,8 @@ module "route_table_apim" {
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
-  bgp_route_propagation_enabled = var.fw_private_ip == null ? true : false
-  routes = var.fw_private_ip == null ? [] : [
-    {
-      name                   = "udr-default"
-      address_prefix         = "0.0.0.0/0"
-      next_hop_type          = "VirtualAppliance"
-      next_hop_in_ip_address = var.fw_private_ip
-    },
+  bgp_route_propagation_enabled = true
+  routes = [
     {
       name           = "udr-api-management"
       address_prefix = "ApiManagement"
@@ -195,15 +166,8 @@ module "route_table_app" {
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
-  bgp_route_propagation_enabled = var.fw_private_ip == null ? true : false
-  routes = var.fw_private_ip == null ? [] : [
-    {
-      name                   = "udr-default"
-      address_prefix         = "0.0.0.0/0"
-      next_hop_type          = "VirtualAppliance"
-      next_hop_in_ip_address = var.fw_private_ip
-    }
-  ]
+  bgp_route_propagation_enabled = true
+  routes                        = []
 }
 
 module "route_table_data" {
@@ -215,15 +179,8 @@ module "route_table_data" {
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
-  bgp_route_propagation_enabled = var.fw_private_ip == null ? true : false
-  routes = var.fw_private_ip == null ? [] : [
-    {
-      name                   = "udr-default"
-      address_prefix         = "0.0.0.0/0"
-      next_hop_type          = "VirtualAppliance"
-      next_hop_in_ip_address = var.fw_private_ip
-    }
-  ]
+  bgp_route_propagation_enabled = true
+  routes                        = []
 }
 
 module "route_table_mgmt" {
@@ -235,15 +192,8 @@ module "route_table_mgmt" {
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
-  bgp_route_propagation_enabled = var.fw_private_ip == null ? true : false
-  routes = var.fw_private_ip == null ? [] : [
-    {
-      name                   = "udr-default"
-      address_prefix         = "0.0.0.0/0"
-      next_hop_type          = "VirtualAppliance"
-      next_hop_in_ip_address = var.fw_private_ip
-    }
-  ]
+  bgp_route_propagation_enabled = true
+  routes                        = []
 }
 
 module "route_table_vint" {
@@ -251,30 +201,22 @@ module "route_table_vint" {
   purpose             = "vint"
   random_string       = var.random_string
   location            = var.location
-    location_code = var.location_code
+  location_code       = var.location_code
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
-  bgp_route_propagation_enabled = var.fw_private_ip == null ? true : false
-  routes = var.fw_private_ip == null ? [] : [
-    {
-      name                   = "udr-default"
-      address_prefix         = "0.0.0.0/0"
-      next_hop_type          = "VirtualAppliance"
-      next_hop_in_ip_address = var.fw_private_ip
-    }
-  ]
+  bgp_route_propagation_enabled = true
+  routes                        = []
 }
 
 ## Create network security groups
 ##
-
 module "nsg_agw" {
   source              = "../../../network-security-group"
   purpose             = "agw"
   random_string       = var.random_string
   location            = var.location
-    location_code = var.location_code
+  location_code       = var.location_code
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
@@ -388,7 +330,7 @@ module "nsg_apim" {
   purpose             = "apim"
   random_string       = var.random_string
   location            = var.location
-    location_code = var.location_code
+  location_code       = var.location_code
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
@@ -481,7 +423,7 @@ module "nsg_app" {
   purpose             = "app"
   random_string       = var.random_string
   location            = var.location
-    location_code = var.location_code
+  location_code       = var.location_code
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
@@ -495,7 +437,7 @@ module "nsg_data" {
   purpose             = "data"
   random_string       = var.random_string
   location            = var.location
-    location_code = var.location_code
+  location_code       = var.location_code
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
@@ -509,7 +451,7 @@ module "nsg_mgmt" {
   purpose             = "mgmt"
   random_string       = var.random_string
   location            = var.location
-    location_code = var.location_code
+  location_code       = var.location_code
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
@@ -523,7 +465,7 @@ module "nsg_svc" {
   purpose             = "svc"
   random_string       = var.random_string
   location            = var.location
-    location_code = var.location_code
+  location_code       = var.location_code
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
@@ -537,7 +479,7 @@ module "nsg_vint" {
   purpose             = "vint"
   random_string       = var.random_string
   location            = var.location
-    location_code = var.location_code
+  location_code       = var.location_code
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
@@ -551,8 +493,7 @@ module "nsg_vint" {
 resource "azurerm_subnet_network_security_group_association" "subnet_nsg_association_agw" {
   depends_on = [
     azurerm_subnet.subnet_agw,
-    module.nsg_agw,
-    azurerm_virtual_network_peering.vnet_peering_to_spoke
+    module.nsg_agw
   ]
 
   subnet_id                 = azurerm_subnet.subnet_agw.id
@@ -562,8 +503,7 @@ resource "azurerm_subnet_network_security_group_association" "subnet_nsg_associa
 resource "azurerm_subnet_network_security_group_association" "subnet_nsg_association_apim" {
   depends_on = [
     azurerm_subnet.subnet_apim,
-    module.nsg_apim,
-    azurerm_virtual_network_peering.vnet_peering_to_spoke
+    module.nsg_apim
   ]
 
   subnet_id                 = azurerm_subnet.subnet_apim.id
@@ -573,8 +513,7 @@ resource "azurerm_subnet_network_security_group_association" "subnet_nsg_associa
 resource "azurerm_subnet_network_security_group_association" "subnet_nsg_association_app" {
   depends_on = [
     azurerm_subnet.subnet_app,
-    module.nsg_app,
-    azurerm_virtual_network_peering.vnet_peering_to_spoke
+    module.nsg_app
   ]
 
   subnet_id                 = azurerm_subnet.subnet_app.id
@@ -584,8 +523,7 @@ resource "azurerm_subnet_network_security_group_association" "subnet_nsg_associa
 resource "azurerm_subnet_network_security_group_association" "subnet_nsg_association_data" {
   depends_on = [
     azurerm_subnet.subnet_data,
-    module.nsg_data,
-    azurerm_virtual_network_peering.vnet_peering_to_spoke
+    module.nsg_data
   ]
 
   subnet_id                 = azurerm_subnet.subnet_data.id
@@ -595,8 +533,7 @@ resource "azurerm_subnet_network_security_group_association" "subnet_nsg_associa
 resource "azurerm_subnet_network_security_group_association" "subnet_nsg_association_mgmt" {
   depends_on = [
     azurerm_subnet.subnet_mgmt,
-    module.nsg_mgmt,
-    azurerm_virtual_network_peering.vnet_peering_to_spoke
+    module.nsg_mgmt
   ]
 
   subnet_id                 = azurerm_subnet.subnet_mgmt.id
@@ -606,8 +543,7 @@ resource "azurerm_subnet_network_security_group_association" "subnet_nsg_associa
 resource "azurerm_subnet_network_security_group_association" "subnet_nsg_association_svc" {
   depends_on = [
     azurerm_subnet.subnet_svc,
-    module.nsg_svc,
-    azurerm_virtual_network_peering.vnet_peering_to_spoke
+    module.nsg_svc
   ]
 
   subnet_id                 = azurerm_subnet.subnet_svc.id
@@ -617,8 +553,7 @@ resource "azurerm_subnet_network_security_group_association" "subnet_nsg_associa
 resource "azurerm_subnet_network_security_group_association" "subnet_nsg_association_vint" {
   depends_on = [
     azurerm_subnet.subnet_vint,
-    module.nsg_vint,
-    azurerm_virtual_network_peering.vnet_peering_to_spoke
+    module.nsg_vint
   ]
 
   subnet_id                 = azurerm_subnet.subnet_vint.id
@@ -631,9 +566,7 @@ resource "azurerm_subnet_route_table_association" "route_table_association_agw" 
   depends_on = [
     azurerm_subnet.subnet_agw,
     azurerm_subnet_network_security_group_association.subnet_nsg_association_agw,
-    module.route_table_agw,
-    azurerm_virtual_network_peering.vnet_peering_to_hub,
-    azurerm_virtual_network_peering.vnet_peering_to_spoke
+    module.route_table_agw
   ]
 
   subnet_id      = azurerm_subnet.subnet_agw.id
@@ -644,9 +577,7 @@ resource "azurerm_subnet_route_table_association" "route_table_association_apim"
   depends_on = [
     azurerm_subnet.subnet_apim,
     azurerm_subnet_network_security_group_association.subnet_nsg_association_apim,
-    module.route_table_apim,
-    azurerm_virtual_network_peering.vnet_peering_to_hub,
-    azurerm_virtual_network_peering.vnet_peering_to_spoke
+    module.route_table_apim
   ]
 
   subnet_id      = azurerm_subnet.subnet_apim.id
@@ -657,9 +588,7 @@ resource "azurerm_subnet_route_table_association" "route_table_association_app" 
   depends_on = [
     azurerm_subnet.subnet_app,
     azurerm_subnet_network_security_group_association.subnet_nsg_association_app,
-    module.route_table_app,
-    azurerm_virtual_network_peering.vnet_peering_to_hub,
-    azurerm_virtual_network_peering.vnet_peering_to_spoke
+    module.route_table_app
   ]
 
   subnet_id      = azurerm_subnet.subnet_app.id
@@ -670,9 +599,7 @@ resource "azurerm_subnet_route_table_association" "route_table_association_data"
   depends_on = [
     azurerm_subnet.subnet_data,
     azurerm_subnet_network_security_group_association.subnet_nsg_association_data,
-    module.route_table_data,
-    azurerm_virtual_network_peering.vnet_peering_to_hub,
-    azurerm_virtual_network_peering.vnet_peering_to_spoke
+    module.route_table_data
   ]
 
   subnet_id      = azurerm_subnet.subnet_data.id
@@ -683,9 +610,7 @@ resource "azurerm_subnet_route_table_association" "route_table_association_mgmt"
   depends_on = [
     azurerm_subnet.subnet_mgmt,
     azurerm_subnet_network_security_group_association.subnet_nsg_association_mgmt,
-    module.route_table_mgmt,
-    azurerm_virtual_network_peering.vnet_peering_to_hub,
-    azurerm_virtual_network_peering.vnet_peering_to_spoke
+    module.route_table_mgmt
   ]
 
   subnet_id      = azurerm_subnet.subnet_mgmt.id
@@ -696,9 +621,7 @@ resource "azurerm_subnet_route_table_association" "route_table_association_vint"
   depends_on = [
     azurerm_subnet.subnet_vint,
     azurerm_subnet_network_security_group_association.subnet_nsg_association_vint,
-    module.route_table_vint,
-    azurerm_virtual_network_peering.vnet_peering_to_hub,
-    azurerm_virtual_network_peering.vnet_peering_to_spoke
+    module.route_table_vint
   ]
 
   subnet_id      = azurerm_subnet.subnet_vint.id
@@ -712,7 +635,7 @@ module "managed_identity" {
   purpose             = "wlp"
   random_string       = var.random_string
   location            = var.location
-    location_code = var.location_code
+  location_code       = var.location_code
   resource_group_name = var.resource_group_name
   tags                = var.tags
 }
@@ -728,7 +651,7 @@ module "key_vault" {
   purpose             = "wlp"
   random_string       = var.random_string
   location            = var.location
-    location_code = var.location_code
+  location_code       = var.location_code
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
@@ -745,7 +668,7 @@ module "private_endpoint_kv" {
   source              = "../../../private-endpoint"
   random_string       = var.random_string
   location            = var.location
-    location_code = var.location_code
+  location_code       = var.location_code
   resource_group_name = var.resource_group_name
   tags                = var.tags
 

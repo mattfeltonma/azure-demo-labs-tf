@@ -2,7 +2,7 @@ locals {
     # Naming conventions
     vwan_hub_name = "vwanh"
     virtual_network_gateway_name = "vng"
-    default_route_table_name = "default"
+    default_route_table_name = "defaultRouteTable"
     default_route_table_labels = [
         "default"
     ]

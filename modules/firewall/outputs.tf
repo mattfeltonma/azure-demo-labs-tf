@@ -19,8 +19,13 @@ output "id" {
 }
 
 output "private_ip" {
-  value       = azurerm_firewall.firewall.ip_configuration[0].private_ip_address
-  description = "The private IP address of the Azure Firewall instance"
+  value       = try(azurerm_firewall.firewall.ip_configuration[0].private_ip_address, null)
+  description = "The private IP address of the Azure Firewall instance with a hub and spoke configuration"
+}
+
+output "private_ip_vwan_hub" {
+    value       = try(azurerm_firewall.firewall.virtual_hub[0].private_ip_address, null)
+    description = "The private IP address of the Azure Firewall instance with a vWAN hub configuration"
 }
 
 output "policy_id" {

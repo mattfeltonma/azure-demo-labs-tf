@@ -608,14 +608,25 @@ resource "azurerm_firewall" "firewall" {
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
-  sku_name           = "AZFW_VNet"
+  sku_name           = var.sku_name
   sku_tier           = var.sku_tier
   firewall_policy_id = azurerm_firewall_policy.firewall_policy.id
 
-  ip_configuration {
-    name                 = "fwipconfig"
-    subnet_id            = var.firewall_subnet_id
-    public_ip_address_id = module.public-ip.id
+  dynamic "ip_configuration" {
+    for_each = var.hub_and_spoke == true ? [1] : []
+    content {
+      name                 = "fwipconfig"
+      subnet_id            = var.firewall_subnet_id
+      public_ip_address_id = module.public-ip.id
+    }
+  }
+
+  dynamic "virtual_hub" {
+    for_each = var.hub_and_spoke == false ? [1] : []
+    content {
+      virtual_hub_id  = var.vwan_hub_id
+      public_ip_count = 1
+    }
   }
 
   lifecycle {

@@ -1,6 +1,7 @@
 variable "associated_route_table" {
   description = "The id of the route table the virtual network connection be associated with"
   type        = string
+  default = null
 }
 
 variable "hub_id" {
@@ -29,11 +30,19 @@ variable "propagate_default_route" {
 variable "propagate_route_labels" {
   description = "The labels the virtual network will propagate to the VWAN Hub"
   type = list(string)
+  default = null
 }
 
 variable "propagate_route_tables" {
   description = "The route tables the virtual network will propagate to the VWAN Hub"
   type = list(string)
+  default = null
+}
+
+variable "secure_hub" {
+    description = "The connection is being made to a secure hub"
+    type = bool
+    default = false
 }
 
 variable "static_routes" {
