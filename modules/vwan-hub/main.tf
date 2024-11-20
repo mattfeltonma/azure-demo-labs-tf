@@ -20,24 +20,11 @@ resource "azurerm_virtual_hub" "hub" {
   }
 }
 
-# Create VWAN Hub Default Route Table
-#
-resource "azurerm_virtual_hub_route_table" "rt_default" {
-  depends_on = [
-    azurerm_virtual_hub.hub
-  ]
-
-  name           = local.default_route_table_name
-  virtual_hub_id = azurerm_virtual_hub.hub.id
-  labels         = local.default_route_table_labels
-}
-
 # Create Virtual Network Gateway if VPN Gateway is enabled
 #
 resource "azurerm_vpn_gateway" "hub_gw" {
   depends_on = [
-    azurerm_virtual_hub.hub,
-    azurerm_virtual_hub_route_table.rt_default
+    azurerm_virtual_hub.hub
   ]
 
   count = var.vpn_gateway == true ? 1 : 0

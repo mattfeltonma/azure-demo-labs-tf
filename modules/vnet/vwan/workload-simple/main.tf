@@ -58,6 +58,7 @@ module "vwan_connection" {
   vnet_id   = azurerm_virtual_network.vnet.id
   vnet_name = azurerm_virtual_network.vnet.name
 
+  secure_hub              = vwan.vwan_secure_hub
   propagate_default_route = var.vwan_propagate_default_route
   associated_route_table  = var.vwan_associated_route_table
   propagate_route_labels  = var.vwan_propagate_route_labels
@@ -111,7 +112,7 @@ module "nsg_app" {
   security_rules = [
     {
       name                       = "AllowSSH"
-      description = "Allow SSH from trusted IP"
+      description                = "Allow SSH from trusted IP"
       priority                   = 1000
       direction                  = "Inbound"
       access                     = "Allow"

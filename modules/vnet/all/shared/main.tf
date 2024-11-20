@@ -124,12 +124,13 @@ resource "azurerm_virtual_network_peering" "vnet_peering" {
 module "vwan_connection" {
   count = var.hub_and_spoke == false ? 1 : 0
 
-  source              = "../../../vwan-connection"
+  source = "../../../vwan-connection"
 
-  hub_id  = var.vwan_hub_id
-  vnet_id = azurerm_virtual_network.vnet.id
+  hub_id    = var.vwan_hub_id
+  vnet_id   = azurerm_virtual_network.vnet.id
   vnet_name = azurerm_virtual_network.vnet.name
 
+  secure_hub              = var.vwan_secure_hub
   propagate_default_route = var.vwan_propagate_default_route
   associated_route_table  = var.vwan_associated_route_table
   propagate_route_labels  = var.vwan_propagate_route_labels
@@ -553,12 +554,12 @@ resource "azapi_resource" "vnet_flow_log" {
 ## Create Private DNS Resolver and endpoints
 ##
 module "dns_resolver" {
-  depends_on = [ 
+  depends_on = [
     azurerm_subnet.subnet_dnsin,
     azurerm_subnet.subnet_dnsout,
     azurerm_subnet_route_table_association.route_table_association_dnsin,
     azurerm_subnet_route_table_association.route_table_association_dnsout
-   ]
+  ]
 
   source              = "../../../dns/private-dns-resolver"
   random_string       = var.random_string
@@ -577,7 +578,7 @@ module "dns_resolver" {
 ##
 resource "azurerm_virtual_network_dns_servers" "vnet_dns" {
 
-  count = var.dns_proxy == true ? 1 : 0
+  count = var.dns_proxy == false ? 1 : 0
 
   depends_on = [
     module.dns_resolver,

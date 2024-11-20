@@ -152,6 +152,12 @@ variable "vwan_outbound_route_map_id" {
   default     = null
 }
 
+variable "vwan_secure_hub" {
+  description = "The virtual network will be connected to a VWAN Secure Hub with routing intent enabled"
+  type        = string
+  default     = false
+}
+
 variable "vwan_static_routes" {
   description = "The static routes to create on the virtual network connection to the VWAN Hub"
   type = list(object({
