@@ -1,6 +1,6 @@
 locals {
   # Convert the region name to a unique abbreviation
-  region_abbreviations = {
+   region_abbreviations = {
     "australiacentral"   = "acl",
     "australiacentral2"  = "acl2",
     "australiaeast"      = "ae",
@@ -29,6 +29,7 @@ locals {
     "koreacentral"       = "krc",
     "koreasouth"         = "krs",
     "mexicocentral"      = "mxc",
+    "newzealandnorth"    = "nzn",
     "northcentralus"     = "ncus",
     "northeurope"        = "ne",
     "norwayeast"         = "nwe",
