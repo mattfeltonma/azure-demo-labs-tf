@@ -5,6 +5,8 @@ resource "azurerm_public_ip" "pip" {
   allocation_method   = local.public_ip_allocation_method
   sku                 = local.public_ip_sku
 
+  domain_name_label = var.dns_label
+
   # As of 10/14/2024 public IPs are deployed as zone redundant by default even if you don't specify zones
   # https://azure.microsoft.com/en-us/blog/azure-public-ips-are-now-zone-redundant-by-default/
 

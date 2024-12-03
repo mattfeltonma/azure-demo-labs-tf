@@ -1,5 +1,5 @@
-# Create an Azure OpenAI Service instance
-#
+## Create an Azure OpenAI Service instance
+##
 resource "azurerm_cognitive_account" "openai" {
   name                = "${local.openai_name}${var.purpose}${local.location_short}${var.random_string}"
   location            = var.location
@@ -19,8 +19,16 @@ resource "azurerm_cognitive_account" "openai" {
   }
 }
 
-# Create diagnostic settings
-#
+## Create a deployment for OpenAI's GPT-4o
+##
+resource "azurerm_cognitive_account_deployment" "openai_deployment" {
+  account_id = azurerm_cognitive_account.openai.id
+  name       = "gpt-4o"
+  location   = var.location
+}
+
+## Create diagnostic settings
+##
 resource "azurerm_monitor_diagnostic_setting" "diag" {
 
   depends_on = [azurerm_cognitive_account.openai]
