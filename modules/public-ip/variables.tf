@@ -1,3 +1,8 @@
+variable "dns_label" {  
+  description = "The resource id of the Log Analytics Workspace to send diagnostic logs to"
+  type        = string
+  default = null
+}
 
 variable "law_resource_id" {  
   description = "The resource id of the Log Analytics Workspace to send diagnostic logs to"

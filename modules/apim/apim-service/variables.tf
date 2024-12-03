@@ -1,5 +1,11 @@
-variable "custom_subdomain_name" {
-  description = "The custom sub domain name added to the OpenAI endpoint URL"
+variable "dns_label" {
+  description = "The custom dns label to add to the public IP as is required by an internal mode API Management"
+  type        = string
+  default = null
+}
+
+variable "key_vault_id" {
+  description = "The Key Vault resource id the API Management instance will have access to"
   type        = string
 }
 
@@ -18,10 +24,14 @@ variable "location_code" {
   type = string
 }
 
-variable "network_access_default" {
-  description = "The default service firewall settings for the Azure OpenAI Service"
-  type        = string
-  default = "Deny"
+variable "publisher_name" {
+  description = "The name of the publisher to display in the Azure API Management instance"
+  type = string
+}
+
+variable "publisher_email" {
+  description = "The email address of the publisher to display in the Azure API Management instance"
+  type = string
 }
 
 variable "purpose" {
@@ -36,6 +46,11 @@ variable "random_string" {
 
 variable "resource_group_name" {
   description = "The name of the resource group to deploy the resources to"
+  type        = string
+}
+
+variable "subnet_id" {
+  description = "The subnet id to deploy the Azure API Management instance to"
   type        = string
 }
 

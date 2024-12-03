@@ -373,7 +373,10 @@ module "nsg_dnsin" {
       protocol                   = "Udp"
       source_port_range          = "*"
       destination_port_range     = 53
-      source_address_prefix      = "Internet"
+      source_address_prefixes = [
+        var.address_space_azure,
+        var.address_space_onpremises
+      ]
       destination_address_prefix = "*"
     }
   ]
