@@ -8,6 +8,12 @@ variable "location" {
   type        = string
 }
 
+variable "location_code" {
+  description = "The code of the location to provision the resources to"
+  type        = string
+}
+
+
 variable "purpose" {
   description = "The three character purpose of the resource"
   type        = string
@@ -36,4 +42,14 @@ variable "subnet_id" {
 variable "tags" {
   description = "The tags to apply to the resource"
   type        = map(string)
+}
+
+variable "workload_vnet_location" {
+  description = "The region where the workload virtual network is located"
+  type        = string
+}
+
+variable "workload_vnet_location_code" {
+  description = "The region code where the workload virtual network is located"
+  type        = string
 }

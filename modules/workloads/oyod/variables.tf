@@ -39,7 +39,7 @@ variable "tags" {
 }
 
 variable "user_object_id" {
-  description = "The object id of the user who will manage the AI Studio Hub"
+  description = "The object id of the user who will manage the Azure Machine Learning Workspace"
   type        = string
 }
 

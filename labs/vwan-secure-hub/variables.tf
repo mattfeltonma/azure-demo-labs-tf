@@ -86,6 +86,7 @@ variable "private_dns_namespaces" {
     "privatelink.notebooks.azure.net",
     "privatelink.api.azureml.ms",
     "privatelink.cognitiveservices.azure.com",
+    "privatelink.search.windows.net"
   ]
 }
 
