@@ -44,8 +44,7 @@ resource "azurerm_role_assignment" "assign-admin" {
 
 resource "azurerm_key_vault_access_policy" "access-policy" {
   for_each = {
-    for policy in var.access_policies :
-    policy.object_id => policy
+    for i, policy in var.access_policies : i => policy 
   }
 
   key_vault_id = azurerm_key_vault.kv.id

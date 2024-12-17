@@ -524,7 +524,7 @@ resource "azapi_resource" "vnet_flow_log" {
   location  = var.location
   parent_id = var.network_watcher_resource_id
 
-  body = jsonencode({
+  body = {
     properties = {
       enabled = local.flow_logs_enabled
       format = {
@@ -550,7 +550,7 @@ resource "azapi_resource" "vnet_flow_log" {
         }
       }
     }
-  })
+  }
   tags = var.tags
 }
 
