@@ -17,11 +17,11 @@ resource "azapi_resource" "backend" {
               statusCodeRanges = [
                 {
                   max = 429
-                  min = 429
+                  min = 429,
                 },
                 {
-                  max = 500
-                  min = 503
+                  max = 503
+                  min = 500,
                 }
               ]
             }
